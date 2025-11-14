@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="auth-page login-page">
+  <main class="auth-card">
+    <section class="illustration">
+      <div class="illustration-inner">
+        <h2>Welcome back, Admin</h2>
+        <p>Sign in to manage verified drivers, approve documents, and review the dashboard.</p>
+        <div class="illustration-figure">
+          <div class="illustration-laptop"></div>
+          <div class="illustration-person"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="login-panel">
+      <div class="logo-header">
+        <%- include("logo") %>
+        <div>
+          <h1>Log In</h1>
+          <p>Use your registered phone number to receive an OTP.</p>
+        </div>
+      </div>
+
+      <form action="/request-otp" method="post" class="login-form">
+        <label for="phoneNumber">Phone Number</label>
+        <div class="input-group">
+          <input
+            id="phoneNumber"
+            name="phoneNumber"
+            type="tel"
+            placeholder="+97412345678"
+            value="<%= phoneNumber %>"
+            required
+          />
+          <span class="input-icon">📞</span>
+        </div>
+
+        <% if (status) { %>
+          <p class="message <%= status.type %>">
+            <%= status.message %>
+            <% if (status.expiresIn) { %>
+              <span class="hint">Expires in <%= status.expiresIn %></span>
+            <% } %>
+          </p>
+        <% } %>
+
+        <button type="submit" class="primary-btn">Request OTP</button>
+      </form>
+
+      <div class="login-footer">
+        <a class="muted-link" href="/verify">Enter OTP you already received</a>
+        <a class="muted-link" href="/forgot-password">Forgot password?</a>
+      </div>
+    </section>
+  </main>
+</body>
+
+</html>

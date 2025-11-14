@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+  </head>
+
+<body class="dashboard-page">
+  <%
+    const formatRelative = (date) => {
+      const diff = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
+      if (diff < 60) return `${diff}s ago`;
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      return `${Math.floor(diff / 86400)}d ago`;
+    };
+
+    const formatNumber = (value) => {
+      const numeric = typeof value === "number" ? value : Number(value);
+      return Number.isFinite(numeric) ? numeric.toLocaleString("en-US") : "—";
+    };
+
+    const formatCurrency = (value) => {
+      const numeric = typeof value === "number" ? value : Number(value);
+      return Number.isFinite(numeric)
+        ? new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 2,
+          }).format(numeric)
+        : "—";
+    };
+
+    const formatPercent = (value) => {
+      const numeric = typeof value === "number" ? value : Number(value);
+      return Number.isFinite(numeric) ? `${numeric.toLocaleString("en-US")}%` : "—";
+    };
+
+    const formatActivityType = (type) => {
+      if (!type) return "Activity";
+      return type
+        .split("_")
+        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .join(" ");
+    };
+
+    const formatLocationType = (value) => {
+      if (!value) return "Location";
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    };
+
+    const overview = stats?.overview || {};
+    const timestampSnapshot = typeof timestamp !== "undefined" ? timestamp : null;
+    const formatDateTime = (value) => {
+      return value ? new Date(value).toLocaleString() : "—";
+    };
+
+    const formatBookingStatus = (status) => {
+      if (!status) return "Unknown";
+      return status
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+    };
+  %>
+
+  <div class="dashboard-app">
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-brand">
+        <%- include("logo") %>
+        <div>
+          <p>RESQ</p>
+          <span>Admin</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="active">
+            <a href="#overview">Dashboard</a>
+          </li>
+          <li>
+            <a href="#drivers">
+              All Drivers
+              <span class="nav-badge"><%= overview.totalDrivers ?? driversMetrics.total ?? 0 %></span>
+            </a>
+          </li>
+          <li>
+            <a href="#bookings">
+              All Bookings
+              <span class="nav-badge"><%= bookings?.length ?? 0 %></span>
+            </a>
+          </li>
+          <li>
+            <a href="#document-approvals">
+              Document Approvals
+              <span class="nav-badge"><%= overview.pendingApprovals ?? driversMetrics.pending ?? 0 %></span>
+            </a>
+          </li>
+          <li>
+            <a href="#driver-cancellations">
+              Driver Cancellations
+              <span class="nav-badge"><%= tripsMetrics.cancelled ?? driverCancellations.length ?? 0 %></span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="dashboard-main">
+      <header class="dashboard-header">
+        <div>
+          <p class="eyebrow">Admin console</p>
+          <h1>Driver overview</h1>
+        </div>
+        <div class="header-actions">
+          <span>Welcome, <%= user?.username || user?.phoneNumber || "Admin" %></span>
+          <a href="/logout" class="button ghost">Log out</a>
+        </div>
+      </header>
+
+      <section class="stats-grid alt-grid" id="overview">
+        <% statTiles.forEach((tile) => { %>
+          <article class="stats-card accent-<%= tile.accent %>">
+            <div class="stats-card-header">
+              <p class="stat-label"><%= tile.label %></p>
+              <div class="stat-icon"></div>
+            </div>
+            <p class="stat-value"><%= tile.value %></p>
+            <p class="stat-note"><%= tile.subtext %></p>
+          </article>
+        <% }); %>
+      </section>
+
+      <section class="section-card detail-grid" id="platform-health">
+        <div class="detail-grid-header">
+          <div>
+            <h2>Platform health</h2>
+              <p class="timestamp">
+                Data snapshot:
+                <%= timestampSnapshot ? new Date(timestampSnapshot).toLocaleString() : "—" %>
+              </p>
+          </div>
+        </div>
+        <div class="detail-grid-inner">
+          <article class="detail-card">
+            <h3>Users</h3>
+            <p class="detail-value"><%= formatNumber(usersMetrics.total) %></p>
+            <div class="detail-row">
+              <span>Active today</span>
+              <strong><%= formatNumber(usersMetrics.activeToday) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>New this month</span>
+              <strong><%= formatNumber(usersMetrics.newThisMonth) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>Growth</span>
+              <strong><%= formatPercent(usersMetrics.growth) %></strong>
+            </div>
+          </article>
+          <article class="detail-card">
+            <h3>Drivers</h3>
+            <p class="detail-value"><%= formatNumber(driversMetrics.total) %></p>
+            <div class="detail-row">
+              <span>Online</span>
+              <strong><%= formatNumber(driversMetrics.online) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>Available now</span>
+              <strong><%= formatNumber(driversMetrics.availableNow) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>Pending</span>
+              <strong><%= formatNumber(driversMetrics.pending) %></strong>
+            </div>
+          </article>
+          <article class="detail-card">
+            <h3>Trips</h3>
+            <p class="detail-value"><%= formatNumber(tripsMetrics.total) %></p>
+            <div class="detail-row">
+              <span>Today</span>
+              <strong><%= formatNumber(tripsMetrics.today) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>This week</span>
+              <strong><%= formatNumber(tripsMetrics.thisWeek) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>In progress</span>
+              <strong><%= formatNumber(tripsMetrics.inProgress) %></strong>
+            </div>
+          </article>
+          <article class="detail-card">
+            <h3>Revenue</h3>
+            <p class="detail-value">
+              <%= formatCurrency(revenueMetrics.total || overview.totalRevenue) %>
+            </p>
+            <div class="detail-row">
+              <span>Today</span>
+              <strong><%= formatCurrency(revenueMetrics.today) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>Plat. commission</span>
+              <strong><%= formatCurrency(revenueMetrics.platformCommission) %></strong>
+            </div>
+            <div class="detail-row">
+              <span>Driver earnings</span>
+              <strong><%= formatCurrency(revenueMetrics.driverEarnings) %></strong>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-card detail-grid" id="platform-health">
+        <div class="section-heading">
+          <h2>Recent platform activity</h2>
+        </div>
+        <div class="table-wrapper">
+          <table class="activity-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Booking</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (recentActivity.length) { %>
+                <% recentActivity.forEach((event, index) => { %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= event.bookingNumber || event.bookingId || "—" %></td>
+                    <td><%= formatActivityType(event.type) %></td>
+                    <td><%= formatCurrency(event.amount) %></td>
+                    <td><%= formatRelative(event.timestamp) %></td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" class="empty-state">No recent activity yet.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section-card bookings-section" id="bookings">
+        <div class="section-heading">
+          <h2>All bookings</h2>
+        </div>
+        <div class="table-wrapper">
+          <table class="bookings-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Booking</th>
+                <th>Rider</th>
+                <th>Driver</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th>Requested</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (bookings && bookings.length) { %>
+                <% bookings.forEach((booking, index) => { %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= booking.bookingNumber || booking.bookingId || "—" %></td>
+                    <td><%= booking.userName || booking.riderName || booking.userId || "—" %></td>
+                    <td><%= booking.driverName || booking.driverId || "Unassigned" %></td>
+                    <td>
+                      <span class="badge <%= booking.status === "CANCELLED" ? "badge-danger" : "badge-success" %>">
+                        <%= formatBookingStatus(booking.status) %>
+                      </span>
+                    </td>
+                    <td><%= formatCurrency(booking.amount) %></td>
+                    <td><%= formatRelative(booking.requestedAt || booking.createdAt) %></td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="7" class="empty-state">No bookings available yet.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section-card cancellations-card" id="driver-cancellations">
+        <div class="section-heading">
+          <h2>Driver cancellations</h2>
+        </div>
+        <p class="timestamp">
+          <strong><%= formatNumber(tripsMetrics.cancelled ?? driverCancellations.length) %></strong> recorded cancellations
+        </p>
+        <div class="table-wrapper">
+          <table class="cancellations-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Booking</th>
+                <th>Type</th>
+                <th>Driver</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% const cancellationsList = Array.isArray(driverCancellations) ? driverCancellations : []; %>
+              <% if (cancellationsList.length) { %>
+                <% cancellationsList.slice(0, 5).forEach((event, index) => { %>
+                  <tr>
+                    <td><%= index + 1 %></td>
+                    <td><%= event.bookingNumber || event.bookingId || "—" %></td>
+                    <td><%= formatActivityType(event.type) %></td>
+                    <td><%= event.driverId || event.driverName || "—" %></td>
+                    <td><%= formatDateTime(event.timestamp || event.createdAt) %></td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" class="empty-state">No cancellations recorded yet.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section-card popular-locations">
+        <div class="section-heading">
+          <h2>Popular locations</h2>
+        </div>
+        <% if (popularLocations.length) { %>
+          <ul class="location-list">
+            <% popularLocations.forEach((location) => { %>
+              <li>
+                <div>
+                  <strong><%= location.address %></strong>
+                  <span><%= formatLocationType(location.type) %></span>
+                </div>
+                <p><%= formatNumber(location.count) %> recorded trips</p>
+              </li>
+            <% }); %>
+          </ul>
+        <% } else { %>
+          <p class="empty-state">No popular pickup or dropoff spots yet.</p>
+        <% } %>
+      </section>
+
+      <section class="section-card split" id="document-approvals">
+        <div class="pending-list-section">
+          <div class="section-heading">
+            <h2>Pending document approvals</h2>
+          </div>
+          <% if (pendingDrivers.length) { %>
+            <div class="pending-table-wrapper">
+              <table class="pending-table">
+                <thead>
+                  <tr>
+                    <th>Driver</th>
+                    <th>Phone</th>
+                    <th>Document</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% pendingDrivers.forEach((driver) => { %>
+                    <tr>
+                      <td>
+                        <strong><%= driver.username || driver.fullName || driver.phoneNumber %></strong>
+                      </td>
+                      <td><%= driver.phoneNumber || driver.contact || "—" %></td>
+                      <td><%= driver.documentType || "Documents pending" %></td>
+                      <td>
+                        <span class="badge <%= driver.status === "REJECTED" ? "badge-danger" : "badge-success" %>">
+                          <%= driver.status || "PENDING" %>
+                        </span>
+                      </td>
+                      <td><%= formatDateTime(driver.submittedAt || driver.createdAt) %></td>
+                      <td class="pending-table-actions">
+                        <form method="post" action="/drivers/<%= driver.id || driver._id %>/approve">
+                          <button class="pill pill-success" type="submit">Approve</button>
+                        </form>
+                        <form method="post" action="/drivers/<%= driver.id || driver._id %>/reject">
+                          <button class="pill pill-danger" type="submit">Reject</button>
+                        </form>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <p class="empty-state">No pending documents right now.</p>
+          <% } %>
+        </div>
+
+          <div id="drivers">
+          <div class="section-heading">
+            <h2>Driver roster (newest first)</h2>
+          </div>
+          <div class="driver-list">
+            <% drivers.slice(0, 6).forEach((driver) => { %>
+              <article class="driver-card">
+                <div>
+                  <strong><%= driver.username || driver.fullName || driver.phoneNumber %></strong>
+                  <span>Joined <%= driver.joinedAt ? new Date(driver.joinedAt).toLocaleDateString() : "N/A" %></span>
+                </div>
+                <span class="pill pill-soft"><%= driver.status || "Driver" %></span>
+              </article>
+            <% }); %>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

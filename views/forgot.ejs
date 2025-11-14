@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reset Password</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body class="auth-page">
+  <main class="login-shell">
+    <section class="login-card">
+      <header>
+        <h1>Password Reset</h1>
+        <p>We will send an OTP to your phone so you can reset your password.</p>
+      </header>
+
+      <form action="/forgot-password" method="post" class="login-form">
+        <label for="phoneNumber">Phone Number</label>
+        <input
+          id="phoneNumber"
+          name="phoneNumber"
+          type="tel"
+          placeholder="+97412345678"
+          required
+        />
+
+        <% if (status) { %>
+          <p class="message <%= status.type %>">
+            <%= status.message %>
+            <% if (status.expiresIn) { %>
+              <span class="hint">OTP expires in <%= status.expiresIn %></span>
+            <% } %>
+          </p>
+        <% } %>
+
+        <button type="submit">Request Password Reset OTP</button>
+      </form>
+
+      <footer class="login-foot">
+        <a class="muted-link" href="/login">Back to login</a>
+        <a class="muted-link" href="/verify">Have an OTP? Verify now</a>
+      </footer>
+    </section>
+  </main>
+</body>
+
+</html>
