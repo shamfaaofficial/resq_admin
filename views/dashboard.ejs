@@ -361,6 +361,32 @@
           <div class="section-heading">
             <h2>Pending document approvals</h2>
           </div>
+          <div class="document-instructions">
+            <p class="section-subtitle">Typical document review process:</p>
+            <ol>
+              <li>
+                <strong>Get pending documents</strong>
+                <pre><code>GET /api/v1/admin/drivers/documents/pending</code></pre>
+              </li>
+              <li>
+                <strong>View driver details</strong>
+                <pre><code>GET /api/v1/admin/drivers/{driverId}/documents</code></pre>
+              </li>
+              <li>
+                <strong>Review each document</strong> – open the signed URL, confirm the document is valid, legible, and up to date.
+              </li>
+              <li>
+                <strong>Approve or reject</strong>
+                <pre><code>PATCH /api/v1/admin/drivers/{driverId}/documents/{documentId}
+{
+  "status": "approved" // or "rejected"
+}</code></pre>
+              </li>
+              <li>
+                <strong>Finalize approval</strong> – once every required document is approved, the driver is automatically approved and can start accepting rides.
+              </li>
+            </ol>
+          </div>
           <% if (pendingDrivers.length) { %>
             <div class="pending-table-wrapper">
               <table class="pending-table">
