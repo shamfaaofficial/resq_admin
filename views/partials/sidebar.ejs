@@ -1,0 +1,25 @@
+<aside class="dashboard-sidebar">
+    <div class="sidebar-brand">
+        <%- include("../logo") %>
+            <div>
+                <p>RESQ</p>
+                <span>Admin</span>
+            </div>
+    </div>
+    <nav class="sidebar-nav">
+        <ul>
+            <li class="<%= active === 'dashboard' ? 'active' : '' %>">
+                <a href="/dashboard">Dashboard</a>
+            </li>
+            <li class="<%= active === 'document-approvals' ? 'active' : '' %>">
+                <a href="/document-approvals">Document Approvals</a>
+            </li>
+            <li class="<%= active === 'trips' ? 'active' : '' %>">
+                <a href="/trips">Trips</a>
+            </li>
+            <li class="<%= active === 'users' ? 'active' : '' %>">
+                <a href="/users">Users</a>
+            </li>
+        </ul>
+    </nav>
+</aside>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Document Approvals</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+
+<body class="dashboard-page">
+  <div class="dashboard-app">
+    <%- include("partials/sidebar", { active: "document-approvals" }) %>
+
+      <main class="document-approvals-main document-approvals-page">
+        <div class="document-approvals-shell">
+          <header class="document-page-header">
+            <div>
+              <p class="breadcrumbs">
+                <span>Home</span> <span class="divider">&gt;</span> Document approvals
+              </p>
+              <h1>Document approvals</h1>
+              <p class="document-page-description">Review every driver submission before the documents are approved.</p>
+            </div>
+            <div class="header-actions">
+              <a href="/logout" class="button ghost">Log out</a>
+              <button type="button" class="button primary">Sync queue</button>
+            </div>
+          </header>
+
+          <section class="document-filters">
+            <div class="filter-row">
+              <label class="filter-field">
+                <span>Date From</span>
+                <input type="date" name="dateFrom" placeholder="Date From" />
+              </label>
+              <label class="filter-field">
+                <span>Date To</span>
+                <input type="date" name="dateTo" placeholder="Date To" />
+              </label>
+              <button type="button" class="button primary outline">Search</button>
+            </div>
+            <div class="filter-row filter-row--secondary">
+              <label class="filter-field">
+                <span>Show Entries</span>
+                <select>
+                  <option>25</option>
+                  <option>50</option>
+                  <option>100</option>
+                </select>
+              </label>
+              <label class="filter-field">
+                <span>Action</span>
+                <select>
+                  <option>Select Action</option>
+                  <option>Approve All</option>
+                  <option>Reject All</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="document-table-panel">
+            <div class="table-header">
+              <p>Pending driver documents</p>
+              <span class="table-tag">
+                <%= drivers?.length || 0 %> drivers
+              </span>
+            </div>
+            <div class="document-table-wrapper">
+              <table class="document-table">
+                <thead>
+                  <tr>
+                    <th class="checkbox-cell">
+                      <input type="checkbox" />
+                    </th>
+                    <th>Driver</th>
+                    <th>Phone</th>
+                    <th>Document</th>
+                    <th>Status</th>
+                    <th>Uploaded</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% let hasDocuments=false; %>
+                    <% if (drivers && drivers.length> 0) { %>
+                      <% drivers.forEach((driver)=> { %>
+                        <% const docs=Array.isArray(driver.documents) ? driver.documents : []; %>
+                          <% if (docs.length> 0) { hasDocuments = true; %>
+                            <% docs.forEach((doc, index)=> { %>
+                              <tr>
+                                <% if (index===0) { %>
+                                  <td class="checkbox-cell" rowspan="<%= docs.length %>" style="vertical-align: top;">
+                                    <input type="checkbox" />
+                                  </td>
+                                  <td rowspan="<%= docs.length %>" style="vertical-align: top;">
+                                    <p class="project-title">
+                                      <%= driver.driverId %>
+                                    </p>
+                                    <p class="project-subtitle">
+                                      <%= driver.name || "Not provided" %>
+                                    </p>
+                                    <div style="margin-top: 8px;">
+                                      <form action="/drivers/<%= driver.driverId %>/approve" method="POST"
+                                        style="display: inline;">
+                                        <button type="submit" class="button primary small">Approve Driver</button>
+                                      </form>
+                                    </div>
+                                  </td>
+                                  <td rowspan="<%= docs.length %>" style="vertical-align: top;">
+                                    <%= driver.phoneNumber || "—" %>
+                                  </td>
+                                  <% } %>
+                                    <td>
+                                      <span class="project-subtitle">Document #<%= doc.id %></span>
+                                      <br>
+                                      <small style="color: #666;">
+                                        <%= (doc.type || "" ).toUpperCase() %>
+                                      </small>
+                                    </td>
+                                    <td>
+                                      <span
+                                        class="badge <%= (doc.status || 'pending').toLowerCase() === 'approved' ? 'badge-success' : (doc.status || 'pending').toLowerCase() === 'rejected' ? 'badge-danger' : 'badge-soft' %>">
+                                        <%= doc.status || "pending" %>
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <%= doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleString() : "—" %>
+                                    </td>
+                                    <td>
+                                      <div style="display: flex; gap: 5px; align-items: center;">
+                                        <button type="button"
+                                          class="button primary <%= doc.signedUrl ? '' : 'button-disabled' %>" <% if
+                                          (doc.signedUrl) { %>
+                                          onclick="window.open('<%= doc.signedUrl %>', '_blank')"
+                                            <% } %>
+                                              <%= doc.signedUrl ? "" : "disabled" %>
+                                                >
+                                                View
+                                        </button>
+                                        <% if ((doc.status || 'pending' ).toLowerCase()==='pending' ) { %>
+                                          <form action="/drivers/<%= driver.driverId %>/documents/<%= doc.id %>/approve"
+                                            method="POST" style="display: inline;">
+                                            <button type="submit" class="button success small"
+                                              title="Approve Document">✓</button>
+                                          </form>
+                                          <form action="/drivers/<%= driver.driverId %>/documents/<%= doc.id %>/reject"
+                                            method="POST" style="display: inline;">
+                                            <button type="submit" class="button danger small"
+                                              title="Reject Document">✗</button>
+                                          </form>
+                                          <% } %>
+                                      </div>
+                                    </td>
+                              </tr>
+                              <% }); %>
+                                <% } %>
+                                  <% }); %>
+                                    <% } %>
+
+                                      <% if (!hasDocuments) { %>
+                                        <tr>
+                                          <td colspan="7" class="empty-state">No pending documents to review.</td>
+                                        </tr>
+                                        <% } %>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+  </div>
+</body>
+
+</html>

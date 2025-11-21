@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Trips</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+
+<body class="dashboard-page">
+    <div class="dashboard-app">
+        <%- include("partials/sidebar", { active: "trips" }) %>
+
+            <main class="document-approvals-main document-approvals-page">
+                <div class="document-approvals-shell">
+                    <header class="document-page-header">
+                        <div>
+                            <p class="breadcrumbs">
+                                <span>Home</span> <span class="divider">&gt;</span> Trips
+                            </p>
+                            <h1>Trips</h1>
+                            <p class="document-page-description">Manage and monitor all trips.</p>
+                        </div>
+                        <div class="header-actions">
+                            <a href="/logout" class="button ghost">Log out</a>
+                        </div>
+                    </header>
+
+                    <section class="document-filters">
+                        <form action="/trips" method="GET" class="filter-row">
+                            <label class="filter-field">
+                                <span>Status</span>
+                                <select name="status" onchange="this.form.submit()">
+                                    <option value="">All Statuses</option>
+                                    <option value="requested" <%=status==='requested' ? 'selected' : '' %>>Requested
+                                    </option>
+                                    <option value="accepted" <%=status==='accepted' ? 'selected' : '' %>>Accepted
+                                    </option>
+                                    <option value="in_progress" <%=status==='in_progress' ? 'selected' : '' %>>In
+                                        Progress</option>
+                                    <option value="completed" <%=status==='completed' ? 'selected' : '' %>>Completed
+                                    </option>
+                                    <option value="cancelled_by_user" <%=status==='cancelled_by_user' ? 'selected' : ''
+                                        %>>Cancelled by User</option>
+                                    <option value="cancelled_by_driver" <%=status==='cancelled_by_driver' ? 'selected'
+                                        : '' %>>Cancelled by Driver</option>
+                                </select>
+                            </label>
+                            <label class="filter-field">
+                                <span>Search</span>
+                                <input type="text" name="search" placeholder="Booking #" value="<%= search || '' %>" />
+                            </label>
+                            <button type="submit" class="button primary outline">Search</button>
+                        </form>
+                    </section>
+
+                    <section class="document-table-panel">
+                        <div class="table-header">
+                            <p>All Trips</p>
+                            <span class="table-tag">
+                                <%= pagination?.total || 0 %> trips
+                            </span>
+                        </div>
+                        <div class="document-table-wrapper">
+                            <table class="document-table">
+                                <thead>
+                                    <tr>
+                                        <th>Booking #</th>
+                                        <th>Status</th>
+                                        <th>User</th>
+                                        <th>Driver</th>
+                                        <th>Locations</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (trips && trips.length> 0) { %>
+                                        <% trips.forEach(trip=> { %>
+                                            <tr>
+                                                <td>
+                                                    <span class="project-title">
+                                                        <%= trip.bookingNumber %>
+                                                    </span>
+                                                    <br>
+                                                    <small style="color: #666;">
+                                                        <%= (trip.vehicleType || "" ).toUpperCase() %>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <span
+                                                        class="badge <%= (trip.status || '').includes('completed') ? 'badge-success' : (trip.status || '').includes('cancel') ? 'badge-danger' : 'badge-soft' %>">
+                                                        <%= (trip.status || "Unknown" ).replace(/_/g, ' ' ) %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <p class="project-title">
+                                                        <%= trip.userId?.profile?.firstName || "Unknown" %>
+                                                    </p>
+                                                    <small>
+                                                        <%= trip.userId?.phoneNumber || "—" %>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <% if (trip.driverId) { %>
+                                                        <p class="project-title">
+                                                            <%= trip.driverId?.userId?.profile?.firstName || "Unknown"
+                                                                %>
+                                                        </p>
+                                                        <small>
+                                                            <%= trip.driverId?.vehicleDetails?.vehicleNumber || "—" %>
+                                                        </small>
+                                                        <% } else { %>
+                                                            <span style="color: #999;">—</span>
+                                                            <% } %>
+                                                </td>
+                                                <td>
+                                                    <div style="font-size: 0.85rem;">
+                                                        <div style="margin-bottom: 4px;"><strong>From:</strong>
+                                                            <%= trip.pickupLocation?.address || "—" %>
+                                                        </div>
+                                                        <div><strong>To:</strong>
+                                                            <%= trip.dropoffLocation?.address || "—" %>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <%= trip.pricing?.totalAmount ?
+                                                        trip.pricing.totalAmount.toLocaleString('en-US', {
+                                                        style: 'currency' , currency: trip.pricing.currency || 'QAR' })
+                                                        : "—" %>
+                                                </td>
+                                                <td>
+                                                    <%= trip.createdAt ? new Date(trip.createdAt).toLocaleString() : "—"
+                                                        %>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                                <% } else { %>
+                                                    <tr>
+                                                        <td colspan="7" class="empty-state">
+                                                            No trips found.
+                                                        </td>
+                                                    </tr>
+                                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Simple Pagination -->
+                        <% if (pagination && pagination.pages> 1) { %>
+                            <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center;">
+                                <% if (pagination.page> 1) { %>
+                                    <a href="/trips?page=<%= pagination.page - 1 %>&status=<%= status %>&search=<%= search %>"
+                                        class="button ghost small">Previous</a>
+                                    <% } %>
+                                        <span style="align-self: center; font-size: 0.9rem;">Page <%= pagination.page %>
+                                                of <%= pagination.pages %></span>
+                                        <% if (pagination.page < pagination.pages) { %>
+                                            <a href="/trips?page=<%= pagination.page + 1 %>&status=<%= status %>&search=<%= search %>"
+                                                class="button ghost small">Next</a>
+                                            <% } %>
+                            </div>
+                            <% } %>
+
+                    </section>
+                </div>
+            </main>
+    </div>
+</body>
+
+</html>

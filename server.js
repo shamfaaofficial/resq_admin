@@ -48,10 +48,10 @@ const formatCurrency = (value) => {
   const numeric = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numeric)
     ? new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 2,
-      }).format(numeric)
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 2,
+    }).format(numeric)
     : "—";
 };
 
@@ -135,10 +135,10 @@ app.get("/verify", (req, res) => {
   const phoneNumber = (req.query.phoneNumber || "").trim();
   const status = req.query.message
     ? {
-        type: req.query.statusType || "success",
-        message: req.query.message,
-        expiresIn: req.query.expiresIn,
-      }
+      type: req.query.statusType || "success",
+      message: req.query.message,
+      expiresIn: req.query.expiresIn,
+    }
     : null;
 
   res.render("verify", { status, phoneNumber });
@@ -221,6 +221,43 @@ app.post("/forgot-password", async (req, res) => {
   }
 });
 
+app.post("/resend-otp", async (req, res) => {
+  const phoneNumber = (req.body.phoneNumber || "").trim();
+
+  if (!phoneNumber) {
+    return res.redirect("/verify?message=Phone number is required&statusType=error");
+  }
+
+  try {
+    const response = await axios.post(`${BASE_API_URL}/api/v1/auth/admin/login`, {
+      phoneNumber,
+    });
+
+    const payload = response.data || {};
+    const successMessage = payload.message || "OTP resent successfully to your phone number";
+    const expiresIn = payload.data?.expiresIn;
+
+    const params = new URLSearchParams({
+      phoneNumber,
+      statusType: "success",
+      message: successMessage,
+    });
+
+    if (expiresIn) {
+      params.append("expiresIn", expiresIn);
+    }
+
+    return res.redirect(`/verify?${params.toString()}`);
+  } catch (error) {
+    const message = extractErrorMessage(
+      error,
+      "Unable to resend OTP. Please try again."
+    );
+
+    return res.redirect(`/verify?phoneNumber=${encodeURIComponent(phoneNumber)}&message=${encodeURIComponent(message)}&statusType=error`);
+  }
+});
+
 app.get("/dashboard", ensureAuth, async (req, res) => {
   try {
     const [statsRes, pendingRes, driversRes, bookingsRes] = await Promise.allSettled([
@@ -244,17 +281,17 @@ app.get("/dashboard", ensureAuth, async (req, res) => {
         : {};
     const pendingDrivers =
       pendingRes.status === "fulfilled" &&
-      Array.isArray(pendingRes.value.data?.data)
+        Array.isArray(pendingRes.value.data?.data)
         ? pendingRes.value.data.data
         : [];
     const drivers =
       driversRes.status === "fulfilled" &&
-      Array.isArray(driversRes.value.data?.data)
+        Array.isArray(driversRes.value.data?.data)
         ? driversRes.value.data.data
         : [];
     const bookings =
       bookingsRes.status === "fulfilled" &&
-      Array.isArray(bookingsRes.value.data?.data)
+        Array.isArray(bookingsRes.value.data?.data)
         ? bookingsRes.value.data.data
         : [];
 
@@ -368,6 +405,48 @@ app.get("/dashboard", ensureAuth, async (req, res) => {
   }
 });
 
+app.get("/document-approvals", ensureAuth, async (req, res) => {
+  const endpoint = `${BASE_API_URL}/api/v1/admin/drivers/documents?status=pending&page=1&limit=10`;
+
+  try {
+    console.log("Requesting URL:", endpoint);
+    const headers = buildHeaders(req);
+    console.log("Request Headers:", JSON.stringify({ ...headers, Authorization: headers.Authorization ? "Bearer [HIDDEN]" : "None" }, null, 2));
+
+    const response = await axios.get(endpoint, {
+      headers,
+    });
+
+    const payload = response.data || {};
+    console.log("API Response Payload:", JSON.stringify(payload, null, 2));
+    const drivers = Array.isArray(payload.data?.drivers) ? payload.data.drivers : [];
+    console.log("Extracted Drivers:", JSON.stringify(drivers, null, 2));
+    const totalDrivers = payload.data?.totalDrivers ?? drivers.length;
+
+    return res.render("document-approvals", {
+      user: req.session.user,
+      drivers,
+      totalDrivers,
+      pendingResponse: payload,
+      endpoint,
+      errorMessage: null,
+    });
+  } catch (error) {
+    console.error("Document approvals error", error.message);
+    const message = extractErrorMessage(error, "Unable to load pending documents.");
+    const payload = error.response?.data || null;
+
+    return res.render("document-approvals", {
+      user: req.session.user,
+      drivers: [],
+      totalDrivers: 0,
+      pendingResponse: payload,
+      endpoint,
+      errorMessage: message,
+    });
+  }
+});
+
 app.post("/drivers/:driverId/approve", ensureAuth, async (req, res) => {
   const driverId = req.params.driverId;
 
@@ -403,6 +482,135 @@ app.post("/drivers/:driverId/reject", ensureAuth, async (req, res) => {
   } catch (error) {
     const message = error.response?.data?.message || "Unable to reject driver.";
     return res.redirect(`/dashboard?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+app.post("/drivers/:driverId/documents/:documentId/approve", ensureAuth, async (req, res) => {
+  const { driverId, documentId } = req.params;
+
+  try {
+    await axios.patch(
+      `${BASE_API_URL}/api/v1/admin/drivers/${driverId}/documents/${documentId}`,
+      { status: "approved" },
+      { headers: buildHeaders(req) }
+    );
+
+    return res.redirect("/document-approvals");
+  } catch (error) {
+    console.error("Document approval error", error.message);
+    return res.redirect("/document-approvals");
+  }
+});
+
+app.post("/drivers/:driverId/documents/:documentId/reject", ensureAuth, async (req, res) => {
+  const { driverId, documentId } = req.params;
+
+  try {
+    await axios.patch(
+      `${BASE_API_URL}/api/v1/admin/drivers/${driverId}/documents/${documentId}`,
+      {
+        status: "rejected",
+        rejectionReason: "Document rejected by admin" // Default reason for now
+      },
+      { headers: buildHeaders(req) }
+    );
+
+    return res.redirect("/document-approvals");
+  } catch (error) {
+    console.error("Document rejection error", error.message);
+    return res.redirect("/document-approvals");
+  }
+});
+
+app.get("/trips", ensureAuth, async (req, res) => {
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
+  const status = req.query.status || "";
+  const search = req.query.search || "";
+
+  let endpoint = `${BASE_API_URL}/api/v1/admin/trips?page=${page}&limit=${limit}`;
+  if (status) endpoint += `&status=${status}`;
+  if (search) endpoint += `&search=${search}`;
+
+  try {
+    const response = await axios.get(endpoint, { headers: buildHeaders(req) });
+    const data = response.data?.data || {};
+
+    res.render("trips", {
+      user: req.session.user,
+      trips: data.trips || [],
+      pagination: data.pagination || { page: 1, pages: 1, total: 0 },
+      status,
+      search,
+    });
+  } catch (error) {
+    console.error("Error fetching trips:", error.message);
+    res.render("trips", {
+      user: req.session.user,
+      trips: [],
+      pagination: { page: 1, pages: 1, total: 0 },
+      status,
+      search,
+      error: "Failed to load trips.",
+    });
+  }
+});
+
+app.get("/users", ensureAuth, async (req, res) => {
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
+  const status = req.query.status || "";
+  const search = req.query.search || "";
+
+  let endpoint = `${BASE_API_URL}/api/v1/admin/users?page=${page}&limit=${limit}`;
+  if (status) endpoint += `&status=${status}`;
+  if (search) endpoint += `&search=${search}`;
+
+  try {
+    const response = await axios.get(endpoint, { headers: buildHeaders(req) });
+    const data = response.data?.data || {};
+
+    res.render("users", {
+      user: req.session.user,
+      users: data.users || [],
+      totalUsers: data.pagination?.totalUsers || data.total || 0,
+      pagination: data.pagination || { currentPage: 1, totalPages: 1, totalUsers: 0 },
+      status,
+      search,
+      message: req.query.message || null,
+      type: req.query.type || null,
+      errorMessage: null,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+    res.render("users", {
+      user: req.session.user,
+      users: [],
+      totalUsers: 0,
+      pagination: { currentPage: 1, totalPages: 1, totalUsers: 0 },
+      status,
+      search,
+      message: null,
+      type: null,
+      errorMessage: "Failed to load users.",
+    });
+  }
+});
+
+app.post("/users/:userId/delete", ensureAuth, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    await axios.delete(
+      `${BASE_API_URL}/api/v1/admin/users/${userId}`,
+      { headers: buildHeaders(req) }
+    );
+
+    return res.redirect("/users?message=User deleted successfully&type=success");
+  } catch (error) {
+    console.error("User deletion error:", error.message);
+    const message = error.response?.data?.message || "Failed to delete user.";
+    return res.redirect(`/users?message=${encodeURIComponent(message)}&type=error`);
   }
 });
 

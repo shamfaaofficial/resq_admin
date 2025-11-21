@@ -9,77 +9,47 @@
 </head>
 
 <body class="auth-page">
-  <main class="verify-layout">
-    <section class="illustration-panel" aria-hidden="true">
-      <div class="illustration-card">
-        <div class="illustration-code">2 3 8 8</div>
-        <div class="illustration-device">
-          <div class="illustration-top"></div>
-          <div class="illustration-screen">
-            <div class="illustration-title">OTP Verification</div>
-            <div class="illustration-text">Secure driver access</div>
-            <div class="illustration-strip"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="verify-panel">
-      <header>
-        <p class="eyebrow">OTP Verification</p>
-        <h1>Enter your security code</h1>
+  <main class="verify-container">
+    <div class="verify-card">
+      <header class="verify-header">
+        <h1>Mobile Phone Verification</h1>
         <p class="subhead">
-          We sent a one-time password to your number. Please enter it below to continue.
+          Enter the 6-digit verification code that was sent to your phone number.
         </p>
       </header>
 
       <% if (status) { %>
-        <p class="message <%= status.type %> hero">
+        <p class="message <%= status.type %>">
           <%= status.message %>
-          <% if (status.expiresIn) { %>
-            <span class="hint">Expires in <%= status.expiresIn %></span>
-          <% } %>
         </p>
-      <% } %>
+        <% } %>
 
-      <form action="/verify-otp" method="post" class="login-form" novalidate>
-        <label for="phoneNumber">Phone Number</label>
-        <input
-          id="phoneNumber"
-          name="phoneNumber"
-          type="tel"
-          value="<%= phoneNumber %>"
-          required
-          readonly
-        />
+          <form action="/verify-otp" method="post" class="verify-form" novalidate>
+            <input type="hidden" name="phoneNumber" value="<%= phoneNumber %>" />
 
-        <label for="otp">OTP Code</label>
-        <div class="pin-board">
-          <div class="pin-inputs" role="group" aria-label="OTP digits">
-            <% for (let index = 0; index < 6; index++) { %>
-              <input
-                type="tel"
-                inputmode="numeric"
-                pattern="\\d"
-                maxlength="1"
-                class="pin-digit"
-                aria-label="Digit <%= index + 1 %>"
-              />
-            <% } %>
+            <div class="pin-board">
+              <div class="pin-inputs" role="group" aria-label="OTP digits">
+                <% for (let index=0; index < 6; index++) { %>
+                  <input type="tel" inputmode="numeric" pattern="\d" maxlength="1" class="pin-digit"
+                    aria-label="Digit <%= index + 1 %>" />
+                  <% } %>
+              </div>
+              <input type="hidden" name="otp" id="otpValue" required />
+            </div>
+
+            <button type="submit" class="button primary full-width">Verify Account</button>
+          </form>
+
+          <div class="verify-footer">
+            <p>Didn't receive code?
+            <form action="/resend-otp" method="POST" style="display: inline;">
+              <input type="hidden" name="phoneNumber" value="<%= phoneNumber %>" />
+              <button type="submit" class="link-text"
+                style="background: none; border: none; cursor: pointer; padding: 0; text-decoration: underline;">Resend</button>
+            </form>
+            </p>
           </div>
-          <input type="hidden" name="otp" id="otpValue" required />
-          <p class="otp-note">Enter the 6-digit code we sent to <strong><%= phoneNumber %></strong></p>
-          <p class="otp-note-light">Paste it here or type each digit manually.</p>
-        </div>
-
-        <button type="submit" class="primary-btn">Verify &amp; Login</button>
-      </form>
-
-      <div class="verify-footer">
-        <a class="muted-link" href="/forgot-password">Didn't receive OTP? Resend code</a>
-        <a class="muted-link" href="/login">Change phone number</a>
-      </div>
-    </section>
+    </div>
   </main>
   <script>
     document.addEventListener("DOMContentLoaded", () => {

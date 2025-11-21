@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users - RESQ Admin</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+
+<body class="dashboard-page">
+    <div class="dashboard-app">
+        <%- include('partials/sidebar', { active: 'users' }) %>
+
+            <main class="dashboard-main">
+                <header class="dashboard-header">
+                    <div>
+                        <h1>Users</h1>
+                        <p class="subhead">Manage all registered users</p>
+                    </div>
+                    <div class="header-actions">
+                        <span class="user-greeting">
+                            <%= user?.name || user?.phoneNumber || 'Admin' %>
+                        </span>
+                        <a href="/logout" class="button secondary">Logout</a>
+                    </div>
+                </header>
+
+                <div class="dashboard-content">
+                    <% if (errorMessage) { %>
+                        <div class="alert alert-error">
+                            <%= errorMessage %>
+                        </div>
+                        <% } %>
+
+                            <% if (message) { %>
+                                <div class="alert alert-<%= type === 'success' ? 'success' : 'error' %>"
+                                    style="margin-bottom: 1rem;">
+                                    <%= message %>
+                                </div>
+                                <% } %>
+
+                                    <!-- Search and Filters -->
+                                    <div class="filters-section" style="margin-bottom: 1.5rem;">
+                                        <form method="GET" action="/users"
+                                            style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                            <input type="text" name="search"
+                                                placeholder="Search by name, phone, or email..."
+                                                value="<%= search || '' %>"
+                                                style="flex: 1; min-width: 250px; padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px;" />
+                                            <select name="status"
+                                                style="padding: 0.5rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+                                                <option value="">All Status</option>
+                                                <option value="active" <%=status==='active' ? 'selected' : '' %>
+                                                    >Active</option>
+                                                <option value="inactive" <%=status==='inactive' ? 'selected' : '' %>
+                                                    >Inactive
+                                                </option>
+                                                <option value="blocked" <%=status==='blocked' ? 'selected' : '' %>
+                                                    >Blocked
+                                                </option>
+                                            </select>
+                                            <button type="submit" class="button primary">Search</button>
+                                            <a href="/users" class="button secondary">Clear</a>
+                                        </form>
+                                    </div>
+
+                                    <!-- Users Table -->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h2>All Users (<%= totalUsers %>)</h2>
+                                        </div>
+                                        <div class="table-container">
+                                            <% if (users && users.length> 0) { %>
+                                                <table class="data-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Name</th>
+                                                            <th>Phone Number</th>
+                                                            <th>Email</th>
+                                                            <th>Status</th>
+                                                            <th>Total Trips</th>
+                                                            <th>Joined Date</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% users.forEach(user=> { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <div>
+                                                                        <p class="project-title">
+                                                                            <%= user.name || 'N/A' %>
+                                                                        </p>
+                                                                        <% if (user.username) { %>
+                                                                            <p class="project-subtitle">@<%=
+                                                                                    user.username %>
+                                                                            </p>
+                                                                            <% } %>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <%= user.phoneNumber || '—' %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= user.email || '—' %>
+                                                                </td>
+                                                                <td>
+                                                                    <span
+                                                                        class="badge <%= (user.status || 'active').toLowerCase() === 'active' ? 'badge-success' : (user.status || 'active').toLowerCase() === 'blocked' ? 'badge-danger' : 'badge-soft' %>">
+                                                                        <%= user.status || 'active' %>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <%= user.totalTrips || 0 %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= user.createdAt ? new
+                                                                        Date(user.createdAt).toLocaleDateString() : '—'
+                                                                        %>
+                                                                </td>
+                                                                <td>
+                                                                    <div style="display: flex; gap: 5px;">
+                                                                        <button type="button"
+                                                                            class="button primary small"
+                                                                            onclick="viewUser('<%= user._id %>')">
+                                                                            View
+                                                                        </button>
+                                                                        <form action="/users/<%= user._id %>/delete"
+                                                                            method="POST" style="display: inline;"
+                                                                            onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                                                                            <button type="submit"
+                                                                                class="button danger small">Delete</button>
+                                                                        </form>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            <% }); %>
+                                                    </tbody>
+                                                </table>
+                                                <% } else { %>
+                                                    <div style="padding: 2rem; text-align: center; color: #666;">
+                                                        <p>No users found.</p>
+                                                    </div>
+                                                    <% } %>
+                                        </div>
+
+                                        <!-- Pagination -->
+                                        <% if (pagination && pagination.totalPages> 1) { %>
+                                            <div class="pagination"
+                                                style="padding: 1rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: center; gap: 0.5rem;">
+                                                <% if (pagination.currentPage> 1) { %>
+                                                    <a href="/users?page=<%= pagination.currentPage - 1 %><%= search ? '&search=' + search : '' %><%= status ? '&status=' + status : '' %>"
+                                                        class="button secondary small">Previous</a>
+                                                    <% } %>
+
+                                                        <span
+                                                            style="padding: 0.5rem 1rem; display: flex; align-items: center;">
+                                                            Page <%= pagination.currentPage %> of <%=
+                                                                    pagination.totalPages %>
+                                                        </span>
+
+                                                        <% if (pagination.currentPage < pagination.totalPages) { %>
+                                                            <a href="/users?page=<%= pagination.currentPage + 1 %><%= search ? '&search=' + search : '' %><%= status ? '&status=' + status : '' %>"
+                                                                class="button secondary small">Next</a>
+                                                            <% } %>
+                                            </div>
+                                            <% } %>
+                                    </div>
+                </div>
+            </main>
+    </div>
+
+    <script>
+        function viewUser(userId) {
+            // TODO: Implement user detail view
+            alert('User details view - ID: ' + userId);
+        }
+    </script>
+</body>
+
+</html>
