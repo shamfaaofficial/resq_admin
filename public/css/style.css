@@ -14,7 +14,10 @@
   --button-gradient: linear-gradient(135deg, #ffca28, #ffc107);
   --button-gradient-hover: linear-gradient(135deg, #ffe082, #ffca28);
   --panel-gradient: linear-gradient(145deg, #ffffff, #fff9c4);
-  --sidebar-bg: #000000;
+  --sidebar-bg: #f5f5f5;
+  --sidebar-text: #6b7280;
+  --sidebar-text-active: #1e40af;
+  --sidebar-active-bg: rgba(59, 130, 246, 0.1);
 }
 
 * {
@@ -62,11 +65,12 @@ body.dashboard-page {
 
 .dashboard-sidebar {
   background: var(--sidebar-bg);
-  color: #fff8ea;
+  color: var(--sidebar-text);
   padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  border-right: 1px solid #e5e7eb;
 }
 
 .sidebar-brand .brand-logo {
@@ -84,11 +88,12 @@ body.dashboard-page {
   margin: 0;
   font-weight: 600;
   letter-spacing: 0.1em;
+  color: #111827;
 }
 
 .sidebar-brand span {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-nav {
@@ -103,7 +108,7 @@ body.dashboard-page {
   font-size: 0.75rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-nav ul {
@@ -115,16 +120,30 @@ body.dashboard-page {
   gap: 0.35rem;
 }
 
+.sidebar-nav ul li a {
+  color: var(--sidebar-text);
+  text-decoration: none;
+  display: block;
+}
+
 .sidebar-nav ul li {
   padding: 0.45rem 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  color: #ffe9c5;
+  color: var(--sidebar-text);
+  transition: all 0.2s ease;
 }
 
 .sidebar-nav ul li.active,
 .sidebar-nav ul li:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text-active);
+  font-weight: 600;
+}
+
+.sidebar-nav ul li.active a,
+.sidebar-nav ul li:hover a {
+  color: var(--sidebar-text-active);
 }
 
 .dashboard-main {

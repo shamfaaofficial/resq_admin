@@ -254,8 +254,184 @@ app.post("/resend-otp", async (req, res) => {
       "Unable to resend OTP. Please try again."
     );
 
-    return res.redirect(`/verify?phoneNumber=${encodeURIComponent(phoneNumber)}&message=${encodeURIComponent(message)}&statusType=error`);
   }
+});
+
+// Driver Management Routes
+app.get("/drivers", ensureAuth, async (req, res) => {
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
+  const status = req.query.status || "";
+  const search = req.query.search || "";
+  const documentStatus = req.query.documentStatus || "";
+
+  let endpoint = `${BASE_API_URL}/api/v1/admin/drivers?page=${page}&limit=${limit}`;
+  if (status) endpoint += `&status=${status}`;
+  if (search) endpoint += `&search=${search}`;
+  if (documentStatus) endpoint += `&documentStatus=${documentStatus}`;
+
+  try {
+    const response = await axios.get(endpoint, { headers: buildHeaders(req) });
+    const data = response.data?.data || {};
+
+    res.render("drivers", {
+      user: req.session.user,
+      drivers: data.drivers || [],
+      totalDrivers: data.totalDrivers || data.total || 0,
+      pagination: data.pagination || { currentPage: 1, totalPages: 1, total: 0 },
+      status,
+      search,
+      documentStatus,
+      message: req.query.message || null,
+      type: req.query.type || null,
+    });
+  } catch (error) {
+    console.error("Error fetching drivers:", error.message);
+    res.render("drivers", {
+      user: req.session.user,
+      drivers: [],
+      totalDrivers: 0,
+      pagination: { currentPage: 1, totalPages: 1, total: 0 },
+      status,
+      search,
+      documentStatus,
+      message: "Failed to load drivers.",
+      type: "error",
+    });
+  }
+});
+
+app.get("/drivers/:id", ensureAuth, async (req, res) => {
+  const driverId = req.params.id;
+
+  try {
+    const response = await axios.get(`${BASE_API_URL}/api/v1/admin/drivers/${driverId}`, {
+      headers: buildHeaders(req),
+    });
+
+    const driver = response.data?.data || null;
+
+    res.render("driver-detail", {
+      user: req.session.user,
+      driver,
+      message: req.query.message || null,
+      type: req.query.type || null,
+    });
+  } catch (error) {
+    console.error("Error fetching driver details:", error.message);
+    res.render("driver-detail", {
+      user: req.session.user,
+      driver: null,
+      message: "Failed to load driver details.",
+      type: "error",
+    });
+  }
+});
+
+app.post("/drivers/:id/delete", ensureAuth, async (req, res) => {
+  const driverId = req.params.id;
+
+  try {
+    await axios.delete(`${BASE_API_URL}/api/v1/admin/drivers/${driverId}`, {
+      headers: buildHeaders(req),
+    });
+
+    return res.redirect("/drivers?message=Driver deleted successfully&type=success");
+  } catch (error) {
+    console.error("Driver deletion error:", error.message);
+    const message = error.response?.data?.message || "Failed to delete driver.";
+    return res.redirect(`/drivers?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+app.post("/drivers/:id/block", ensureAuth, async (req, res) => {
+  const driverId = req.params.id;
+
+  try {
+    await axios.post(
+      `${BASE_API_URL}/api/v1/admin/drivers/${driverId}/block`,
+      {},
+      { headers: buildHeaders(req) }
+    );
+
+    return res.redirect(`/drivers/${driverId}?message=Driver blocked successfully&type=success`);
+  } catch (error) {
+    console.error("Driver block error:", error.message);
+    const message = error.response?.data?.message || "Failed to block driver.";
+    return res.redirect(`/drivers/${driverId}?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+app.post("/drivers/:id/unblock", ensureAuth, async (req, res) => {
+  const driverId = req.params.id;
+
+  try {
+    await axios.post(
+      `${BASE_API_URL}/api/v1/admin/drivers/${driverId}/unblock`,
+      {},
+      { headers: buildHeaders(req) }
+    );
+
+    return res.redirect(`/drivers/${driverId}?message=Driver unblocked successfully&type=success`);
+  } catch (error) {
+    console.error("Driver unblock error:", error.message);
+    const message = error.response?.data?.message || "Failed to unblock driver.";
+    return res.redirect(`/drivers/${driverId}?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+app.post("/drivers/:id/approve", ensureAuth, async (req, res) => {
+  const driverId = req.params.id;
+
+  try {
+    console.log(`🔍 Attempting to approve driver: ${driverId}`);
+    console.log(`📡 API URL: ${BASE_API_URL}/api/v1/admin/drivers/${driverId}/approve`);
+
+    const response = await axios.post(
+      `${BASE_API_URL}/api/v1/admin/drivers/${driverId}/approve`,
+      {},
+      { headers: buildHeaders(req) }
+    );
+
+    console.log(`✅ Driver approved successfully:`, response.data);
+    return res.redirect(`/drivers/${driverId}?message=Driver approved successfully&type=success`);
+  } catch (error) {
+    console.error("❌ Driver approval error:", error.message);
+    console.error("📋 Error details:", error.response?.data);
+    console.error("🔢 Status code:", error.response?.status);
+
+    const message = error.response?.data?.message || error.message || "Failed to approve driver.";
+    return res.redirect(`/drivers/${driverId}?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+app.post("/drivers/:id/reject", ensureAuth, async (req, res) => {
+  const driverId = req.params.id;
+
+  try {
+    await axios.post(
+      `${BASE_API_URL}/api/v1/admin/drivers/${driverId}/reject`,
+      {},
+      { headers: buildHeaders(req) }
+    );
+
+    return res.redirect(`/drivers/${driverId}?message=Driver rejected successfully&type=success`);
+  } catch (error) {
+    console.error("Driver rejection error:", error.message);
+    const message = error.response?.data?.message || "Failed to reject driver.";
+    return res.redirect(`/drivers/${driverId}?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+
+
+// Analytics Dashboard Route
+app.get("/analytics", ensureAuth, (req, res) => {
+  res.render("analytics", {
+    user: req.session.user,
+    message: req.query.message || null,
+    type: req.query.type || null,
+  });
 });
 
 app.get("/dashboard", ensureAuth, async (req, res) => {

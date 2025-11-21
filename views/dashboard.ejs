@@ -12,276 +12,422 @@
 <body class="dashboard-page">
   <% const formatRelative=(date)=> {
     const diff = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
-    if (diff < 60) return `${diff}s ago`; if (diff < 3600) return `${Math.floor(diff / 60)}m ago`; if (diff < 86400)
-      return `${Math.floor(diff / 3600)}h ago`; return `${Math.floor(diff / 86400)}d ago`; }; const
-      formatNumber=(value)=> {
-      const numeric = typeof value === "number" ? value : Number(value);
-      return Number.isFinite(numeric) ? numeric.toLocaleString("en-US") : "—";
-      };
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
 
-      const formatCurrency = (value) => {
-      const numeric = typeof value === "number" ? value : Number(value);
-      return Number.isFinite(numeric)
+  const formatNumber=(value)=> {
+    const numeric = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numeric) ? numeric.toLocaleString("en-US") : "—";
+  };
+
+  const formatCurrency = (value) => {
+    const numeric = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numeric)
       ? new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 2,
-      }).format(numeric)
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 2,
+        }).format(numeric)
       : "—";
-      };
+  };
 
-      const formatPercent = (value) => {
-      const numeric = typeof value === "number" ? value : Number(value);
-      return Number.isFinite(numeric) ? `${numeric.toLocaleString("en-US")}%` : "—";
-      };
+  const formatPercent = (value) => {
+    const numeric = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numeric) ? `${numeric.toLocaleString("en-US")}%` : "—";
+  };
 
-      const safeNumber = (value, fallback = 0) => {
-      const numeric = typeof value === "number" ? value : Number(value);
-      return Number.isFinite(numeric) ? numeric : fallback;
-      };
+  const formatSignedPercent = (value) => {
+    const numeric = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numeric)
+      ? `${numeric > 0 ? "+" : ""}${numeric.toLocaleString("en-US")}%`
+      : "—";
+  };
 
-      const overview = stats?.overview || {};
-      const timestampSnapshot = typeof timestamp !== "undefined" ? timestamp : null;
-      const driverMetricsSummary = driversMetrics || {};
-      const tripMetricsSummary = tripsMetrics || {};
-      const revenueSummary = revenueMetrics || {};
-      const usersMetricsSummary = usersMetrics || {};
-      const pendingCount = Array.isArray(pendingDrivers) ? pendingDrivers.length : 0;
+  const safeNumber = (value, fallback = 0) => {
+    const numeric = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
+  };
 
-      const summaryCards = [
-      {
-      label: "Total trips",
-      value: formatNumber(tripMetricsSummary.total),
-      highlight: "Active trips",
-      highlightValue: formatNumber(tripMetricsSummary.inProgress),
-      },
-      {
-      label: "Revenue",
-      value: formatCurrency(revenueSummary.total || overview.totalRevenue),
-      highlight: "Today",
-      highlightValue: formatCurrency(revenueSummary.today || overview.todayRevenue),
-      },
-      {
-      label: "Drivers",
-      value: formatNumber(driverMetricsSummary.total),
-      highlight: "Online",
-      highlightValue: formatNumber(driverMetricsSummary.online),
-      },
-      {
-      label: "Pending approvals",
-      value: formatNumber(pendingCount),
-      highlight: "Documents",
-      highlightValue: formatNumber(pendingCount),
-      },
-      ];
+  const deriveScore = (value) => {
+    const numeric = safeNumber(value, 0);
+    return numeric ? Math.max(8, Math.min(95, Math.round(Math.abs(numeric) % 100))) : 12;
+  };
 
-      const platformHealth = [
-      {
+  const overview = stats?.overview || {};
+  const timestampSnapshot = typeof timestamp !== "undefined" ? timestamp : null;
+  const driverMetricsSummary = driversMetrics || {};
+  const tripMetricsSummary = tripsMetrics || {};
+  const revenueSummary = revenueMetrics || {};
+  const usersMetricsSummary = usersMetrics || {};
+  const pendingCount = Array.isArray(pendingDrivers) ? pendingDrivers.length : 0;
+
+  const totalTripsValue = safeNumber(tripMetricsSummary.total, 0);
+  const activeTripsValue = safeNumber(tripMetricsSummary.inProgress, 0);
+  const completedTripsValue = safeNumber(
+    tripMetricsSummary.completed,
+    Math.max(totalTripsValue - activeTripsValue, 0)
+  );
+  const totalRevenueValue = safeNumber(revenueSummary.total || overview.totalRevenue, 0);
+  const todayRevenueValue = safeNumber(revenueSummary.today || overview.todayRevenue, 0);
+  const platformCommissionValue = safeNumber(revenueSummary.platformCommission, 0);
+  const driverEarningsValue = safeNumber(revenueSummary.driverEarnings, 0);
+  const usersGrowthValue = safeNumber(usersMetricsSummary.growth, 0);
+  const driverGrowthValue = safeNumber(driverMetricsSummary.growth, 0);
+  const companyValueChange = safeNumber(revenueSummary.growth, 0);
+  const newAccountsValue = safeNumber(
+    typeof usersMetricsSummary.newThisMonth === "number"
+      ? usersMetricsSummary.newThisMonth
+      : usersMetricsSummary.total,
+    0
+  );
+  const activeUsersValue = safeNumber(usersMetricsSummary.activeToday, 0);
+  const onlineDriversValue = safeNumber(driverMetricsSummary.online, 0);
+  const newDriversRaw = safeNumber(driverMetricsSummary.newThisMonth, pendingCount);
+  const driverTotalValue = safeNumber(driverMetricsSummary.total, 0);
+  const verifiedDriversValue = Math.max(driverTotalValue - pendingCount, 0);
+  const expenseBaseline = platformCommissionValue || driverEarningsValue || 0;
+  const expenseChangeValue = expenseBaseline
+    ? ((driverEarningsValue - platformCommissionValue) / Math.max(expenseBaseline, 1)) * 100
+    : null;
+  const spendPercent = totalRevenueValue > 0
+    ? Math.min(100, Math.round(((driverEarningsValue || todayRevenueValue) / totalRevenueValue) * 100))
+    : 0;
+
+  const minimalCards = [
+    {
+      label: "New accounts",
+      value: formatNumber(newAccountsValue),
+      changeText: formatSignedPercent(usersGrowthValue),
+      changeRaw: usersGrowthValue,
+      badgeLabel: "Active today",
+      badgeValue: formatNumber(activeUsersValue),
+      badgeRaw: activeUsersValue,
+      accent: "blue",
+    },
+    {
+      label: "Total expenses",
+      value: formatCurrency(driverEarningsValue),
+      changeText: formatSignedPercent(expenseChangeValue ? -Math.abs(expenseChangeValue) : null),
+      changeRaw: expenseChangeValue ? -Math.abs(expenseChangeValue) : null,
+      badgeLabel: "Platform fees",
+      badgeValue: formatCurrency(platformCommissionValue),
+      badgeRaw: platformCommissionValue,
+      accent: "pink",
+    },
+    {
+      label: "Company value",
+      value: formatCurrency(totalRevenueValue),
+      changeText: formatSignedPercent(companyValueChange),
+      changeRaw: companyValueChange,
+      badgeLabel: "Today",
+      badgeValue: formatCurrency(todayRevenueValue),
+      badgeRaw: todayRevenueValue,
+      accent: "amber",
+    },
+    {
+      label: "New drivers",
+      value: formatNumber(newDriversRaw),
+      changeText: formatSignedPercent(driverGrowthValue),
+      changeRaw: driverGrowthValue,
+      badgeLabel: "Online now",
+      badgeValue: formatNumber(onlineDriversValue),
+      badgeRaw: onlineDriversValue,
+      accent: "green",
+    },
+  ].map((card) => ({
+    ...card,
+    score: deriveScore(card.badgeRaw),
+  }));
+
+  const financialCards = [
+    {
+      label: "Income",
+      value: formatCurrency(platformCommissionValue || todayRevenueValue),
+      changeText: formatSignedPercent(companyValueChange),
+      changeRaw: companyValueChange,
+      helper: "vs last week",
+    },
+    {
+      label: "Expenses",
+      value: formatCurrency(driverEarningsValue),
+      changeText: formatSignedPercent(expenseChangeValue ? -Math.abs(expenseChangeValue) : null),
+      changeRaw: expenseChangeValue ? -Math.abs(expenseChangeValue) : null,
+      helper: "Driver payouts",
+    },
+    {
+      label: "Spendings",
+      value: formatCurrency(driverEarningsValue - platformCommissionValue),
+      changeText: formatSignedPercent(spendPercent),
+      changeRaw: spendPercent,
+      helper: "Budget used",
+    },
+    {
+      label: "Totals",
+      value: formatCurrency(totalRevenueValue),
+      changeText: formatSignedPercent(companyValueChange),
+      changeRaw: companyValueChange,
+      helper: "Lifetime revenue",
+    },
+  ];
+
+  const targetMetrics = [
+    {
+      label: "Trip completion",
+      percent: totalTripsValue > 0
+        ? Math.min(100, Math.round((completedTripsValue / Math.max(totalTripsValue, 1)) * 100))
+        : 0,
+      detail: `${formatNumber(completedTripsValue)} completed`
+    },
+    {
+      label: "Document approvals",
+      percent: driverTotalValue > 0
+        ? Math.min(100, Math.round((verifiedDriversValue / Math.max(driverTotalValue, 1)) * 100))
+        : 0,
+      detail: `${formatNumber(verifiedDriversValue)} verified`
+    }
+  ];
+
+  const trafficDays = ["Jan 05", "Jan 06", "Jan 07", "Jan 08", "Jan 09", "Jan 10", "Jan 11"];
+  const baseTrips = totalTripsValue || 700;
+  const baseActiveTrips = activeTripsValue || 140;
+  const trafficSeries = trafficDays.map((label, index) => {
+    const websiteBlog = Math.round(baseTrips / trafficDays.length + index * 30);
+    const socialMedia = Math.round(baseActiveTrips / trafficDays.length + index * 6);
+    return { label, websiteBlog, socialMedia };
+  });
+  const trafficMaxVolume = trafficSeries.reduce((max, point) => Math.max(max, point.websiteBlog, point.socialMedia), 0) || 100;
+  const trafficLineMax = trafficSeries.reduce((max, point) => Math.max(max, point.socialMedia), 0) || 100;
+  const trafficLinePoints = trafficSeries.map((point, index) => {
+    const divisor = Math.max(trafficSeries.length - 1, 1);
+    const x = (index / divisor) * 100;
+    const y = 55 - ((point.socialMedia / trafficLineMax) * 45);
+    return `${x},${y}`;
+  }).join(" ");
+
+  const platformHealth = [
+    {
       title: "Users",
       total: formatNumber(usersMetricsSummary.total),
       details: [
-      { label: "Active today", value: formatNumber(usersMetricsSummary.activeToday) },
-      { label: "New this month", value: formatNumber(usersMetricsSummary.newThisMonth) },
-      { label: "Growth", value: formatPercent(usersMetricsSummary.growth) },
+        { label: "Active today", value: formatNumber(usersMetricsSummary.activeToday) },
+        { label: "New this month", value: formatNumber(usersMetricsSummary.newThisMonth) },
+        { label: "Growth", value: formatPercent(usersMetricsSummary.growth) },
       ],
-      },
-      {
+    },
+    {
       title: "Drivers",
       total: formatNumber(driverMetricsSummary.total),
       details: [
-      { label: "Online", value: formatNumber(driverMetricsSummary.online) },
-      { label: "Available now", value: formatNumber(driverMetricsSummary.availableNow) },
-      { label: "Pending", value: formatNumber(driverMetricsSummary.pending) },
+        { label: "Online", value: formatNumber(driverMetricsSummary.online) },
+        { label: "Available now", value: formatNumber(driverMetricsSummary.availableNow) },
+        { label: "Pending", value: formatNumber(driverMetricsSummary.pending) },
       ],
-      },
-      {
+    },
+    {
       title: "Trips",
       total: formatNumber(tripMetricsSummary.total),
       details: [
-      { label: "Today", value: formatNumber(tripMetricsSummary.today) },
-      { label: "This week", value: formatNumber(tripMetricsSummary.thisWeek) },
-      { label: "In progress", value: formatNumber(tripMetricsSummary.inProgress) },
+        { label: "Today", value: formatNumber(tripMetricsSummary.today) },
+        { label: "This week", value: formatNumber(tripMetricsSummary.thisWeek) },
+        { label: "In progress", value: formatNumber(tripMetricsSummary.inProgress) },
       ],
-      },
-      {
+    },
+    {
       title: "Revenue",
       total: formatCurrency(revenueSummary.total || overview.totalRevenue),
       details: [
-      { label: "Today", value: formatCurrency(revenueSummary.today || overview.todayRevenue) },
-      { label: "Plat. commission", value: formatCurrency(revenueSummary.platformCommission) },
-      { label: "Driver earnings", value: formatCurrency(revenueSummary.driverEarnings) },
+        { label: "Today", value: formatCurrency(revenueSummary.today || overview.todayRevenue) },
+        { label: "Plat. commission", value: formatCurrency(revenueSummary.platformCommission) },
+        { label: "Driver earnings", value: formatCurrency(revenueSummary.driverEarnings) },
       ],
-      },
-      ];
-      %>
+    },
+  ];
+  %>
 
-      <div class="dashboard-app">
-        <%- include("partials/sidebar", { active: "dashboard" }) %>
+  <div class="dashboard-app dashboard-app--minimal">
+    <%- include("partials/sidebar", { active: "dashboard" }) %>
 
-          <main class="dashboard-main dashboard-main--simple" id="overview">
-            <header class="dashboard-hero">
-              <div>
-                <p class="eyebrow">Admin console</p>
-                <h1>Driver overview</h1>
+    <main class="dashboard-main dashboard-main--minimal" id="overview">
+      <section class="page-header">
+        <div>
+          <p class="breadcrumbs">Dashboard</p>
+          <h1>  Dashboard</h1>
+          <!-- <p class="page-subtitle">This dashboard example was created using the available components in the system.</p> -->
+        </div>
+        <div class="header-actions">
+          <a href="/logout" class="button ghost">Log out</a>
+        </div>
+      </section>
+
+      <% if (feedback && feedback.message) { %>
+        <div class="alert alert-<%= feedback.type || 'info' %>" style="margin-bottom: 1.5rem;">
+          <%= feedback.message %>
+        </div>
+      <% } %>
+
+      <section class="announcement-card">
+        <p>This dashboard uses only built-in UI blocks. Feel free to mix and match the components to build your next board.</p>
+        <span class="timestamp">Data snapshot: <%= timestampSnapshot ? new Date(timestampSnapshot).toLocaleString() : "—" %></span>
+      </section>
+
+      <section class="minimal-stat-grid">
+        <% minimalCards.forEach((card)=> { %>
+          <article class="minimal-card minimal-card--<%= card.accent %>">
+            <div>
+              <p class="card-label"><%= card.label %></p>
+              <p class="card-value"><%= card.value %></p>
+              <p class="card-meta">
+                <% const cardTrend = Number.isFinite(card.changeRaw) ? (card.changeRaw >= 0 ? 'trend--up' : 'trend--down') : 'trend--neutral'; %>
+                <span class="trend <%= cardTrend %>"><%= card.changeText %></span>
+                <span class="card-hint"><%= card.badgeLabel %></span>
+              </p>
+            </div>
+            <div class="card-side">
+              <div class="progress-circle" style="--score: <%= card.score %>">
+                <span><%= card.score %></span>
               </div>
-              <div class="header-actions">
-                <span>Welcome, <%= user?.username || user?.phoneNumber || "Admin" %></span>
-                <a href="/logout" class="button ghost">Log out</a>
+              <p class="progress-label"><%= card.badgeValue %></p>
+            </div>
+          </article>
+        <% }) %>
+      </section>
+
+      <!-- <section class="minimal-main-grid">
+        <article class="panel panel-traffic">
+          <div class="panel-header">
+            <div>
+              <h2>Traffic sources</h2>
+              <p>Website blog vs Social media performance</p>
+            </div>
+            <button class="panel-action" type="button">Actions</button>
+          </div>
+          <div class="traffic-chart">
+            <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+              <% trafficSeries.forEach((point, index)=> { const barWidth = 8; const gap = 100 / trafficSeries.length; const x = index * gap + (gap - barWidth) / 2; const barHeight = (point.websiteBlog / trafficMaxVolume) * 45; const barY = 55 - barHeight; %>
+                <rect x="<%= x %>" y="<%= barY %>" width="<%= barWidth %>" height="<%= Math.max(barHeight, 1) %>" rx="2"></rect>
+              <% }) %>
+              <polyline points="<%= trafficLinePoints %>" fill="none" stroke="#4CAF50" stroke-width="1.5" stroke-linecap="round"></polyline>
+              <% trafficSeries.forEach((point, index)=> { const divisor = Math.max(trafficSeries.length - 1, 1); const cx = (index / divisor) * 100; const cy = 55 - ((point.socialMedia / trafficLineMax) * 45); %>
+                <circle cx="<%= cx %>" cy="<%= cy %>" r="1.6" fill="#fff" stroke="#4CAF50" stroke-width="0.8"></circle>
+              <% }) %>
+            </svg>
+            <div class="traffic-chart__labels">
+              <% trafficSeries.forEach((point)=> { %>
+                <span><%= point.label %></span>
+              <% }) %>
+            </div>
+          </div>
+          <div class="traffic-legend">
+            <div>
+              <span class="legend-dot legend-dot--blue"></span>
+              Website Blog
+            </div>
+            <div>
+              <span class="legend-dot legend-dot--green"></span>
+              Social Media
+            </div>
+          </div>
+        </article>
+
+        <article class="panel panel-income">
+          <div class="panel-header">
+            <div>
+              <h2>Income</h2>
+              <p>Spending target overview</p>
+            </div>
+          </div>
+          <div class="income-content">
+            <div class="progress-ring" style="--progress: <%= spendPercent %>">
+              <div class="progress-ring__inner">
+                <p>Percent</p>
+                <strong><%= spendPercent %>%</strong>
               </div>
-            </header>
+            </div>
+            <div class="income-details">
+              <p class="target-value">Target: <strong><%= formatCurrency(totalRevenueValue) %></strong></p>
+              <ul class="income-list">
+                <li>
+                  <span>Platform commission</span>
+                  <strong><%= formatCurrency(platformCommissionValue) %></strong>
+                </li>
+                <li>
+                  <span>Driver earnings</span>
+                  <strong><%= formatCurrency(driverEarningsValue) %></strong>
+                </li>
+                <li>
+                  <span>Revenue today</span>
+                  <strong><%= formatCurrency(todayRevenueValue) %></strong>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </section> -->
 
-            <% if (feedback && feedback.message) { %>
-              <div class="alert alert-<%= feedback.type || 'info' %>" style="margin-bottom: 1.5rem;">
-                <%= feedback.message %>
+      <!-- <section class="financial-grid">
+        <% financialCards.forEach((card)=> { %>
+          <article class="financial-card">
+            <div class="financial-card__label-row">
+              <p><%= card.label %></p>
+              <% const panelTrend = Number.isFinite(card.changeRaw) ? (card.changeRaw >= 0 ? 'trend--up' : 'trend--down') : 'trend--neutral'; %>
+              <span class="trend <%= panelTrend %>"><%= card.changeText %></span>
+            </div>
+            <p class="financial-card__value"><%= card.value %></p>
+            <p class="financial-card__hint"><%= card.helper %></p>
+          </article>
+        <% }) %>
+      </section> -->
+
+      <!-- <section class="target-section">
+        <header>
+          <h2>Target section</h2>
+          <p>Monitor the completion of core operational goals</p>
+        </header>
+        <div class="target-grid">
+          <% targetMetrics.forEach((metric)=> { %>
+            <article class="target-card">
+              <div class="target-card__top">
+                <p class="target-label"><%= metric.label %></p>
+                <span><%= metric.percent %>%</span>
               </div>
-              <% } %>
+              <div class="target-progress">
+                <div class="target-progress__bar" style="width: <%= metric.percent %>%"></div>
+              </div>
+              <p class="target-detail"><%= metric.detail %></p>
+            </article>
+          <% }) %>
+        </div>
+      </section> -->
 
-                <section class="summary-section">
-                  <div class="stat-cards-grid">
-                    <!-- Card 1: Total Trips (Blue) -->
-                    <article class="stat-card stat-card--blue">
-                      <div class="stat-card__header">
-                        <div class="stat-card__info">
-                          <p class="stat-card__value">
-                            <%= formatNumber(tripMetricsSummary.total) %>
-                          </p>
-                          <p class="stat-card__label">Total Trips</p>
-                        </div>
-                        <div class="stat-card__icon">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M3 3h18v18H3z" />
-                            <path d="M3 9h18M9 21V9" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="stat-card__chart">
-                        <svg viewBox="0 0 100 30" preserveAspectRatio="none">
-                          <polyline points="0,25 20,20 40,22 60,15 80,18 100,10" fill="none"
-                            stroke="rgba(255,255,255,0.4)" stroke-width="2" />
-                        </svg>
-                      </div>
-                    </article>
-
-                    <!-- Card 2: Active Trips (Cyan) -->
-                    <article class="stat-card stat-card--cyan">
-                      <div class="stat-card__header">
-                        <div class="stat-card__info">
-                          <p class="stat-card__value">
-                            <%= formatNumber(tripMetricsSummary.inProgress) %>
-                          </p>
-                          <p class="stat-card__label">Active Trips</p>
-                        </div>
-                        <div class="stat-card__icon">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="stat-card__chart">
-                        <svg viewBox="0 0 100 30" preserveAspectRatio="none">
-                          <polyline points="0,20 20,18 40,15 60,20 80,12 100,8" fill="none"
-                            stroke="rgba(255,255,255,0.4)" stroke-width="2" />
-                        </svg>
-                      </div>
-                    </article>
-
-                    <!-- Card 3: Revenue (Yellow) -->
-                    <article class="stat-card stat-card--yellow">
-                      <div class="stat-card__header">
-                        <div class="stat-card__info">
-                          <p class="stat-card__value">
-                            <%= formatCurrency(revenueSummary.total || overview.totalRevenue) %>
-                          </p>
-                          <p class="stat-card__label">Total Revenue</p>
-                        </div>
-                        <div class="stat-card__icon">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <line x1="12" y1="1" x2="12" y2="23" />
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="stat-card__chart">
-                        <svg viewBox="0 0 100 30" preserveAspectRatio="none">
-                          <polyline points="0,28 20,24 40,20 60,18 80,14 100,12" fill="none" stroke="rgba(0,0,0,0.2)"
-                            stroke-width="2" />
-                        </svg>
-                      </div>
-                    </article>
-
-                    <!-- Card 4: Online Drivers (Coral) -->
-                    <article class="stat-card stat-card--coral">
-                      <div class="stat-card__header">
-                        <div class="stat-card__info">
-                          <p class="stat-card__value">
-                            <%= formatNumber(driverMetricsSummary.online) %>
-                          </p>
-                          <p class="stat-card__label">Drivers Online</p>
-                        </div>
-                        <div class="stat-card__icon">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="stat-card__chart">
-                        <svg viewBox="0 0 100 30" preserveAspectRatio="none">
-                          <rect x="5" y="20" width="8" height="10" fill="rgba(255,255,255,0.3)" />
-                          <rect x="20" y="15" width="8" height="15" fill="rgba(255,255,255,0.3)" />
-                          <rect x="35" y="18" width="8" height="12" fill="rgba(255,255,255,0.3)" />
-                          <rect x="50" y="12" width="8" height="18" fill="rgba(255,255,255,0.3)" />
-                          <rect x="65" y="16" width="8" height="14" fill="rgba(255,255,255,0.3)" />
-                          <rect x="80" y="10" width="8" height="20" fill="rgba(255,255,255,0.3)" />
-                        </svg>
-                      </div>
-                    </article>
-                  </div>
-                </section>
-
-                <section class="platform-health-card">
-                  <div class="platform-health-card__header">
-                    <div>
-                      <h2>Platform health</h2>
-                      <p class="timestamp">
-                        Data snapshot: <%= timestampSnapshot ? new Date(timestampSnapshot).toLocaleString() : "—" %>
-                      </p>
-                    </div>
-                  </div>
-                  <div class="platform-health-grid">
-                    <% platformHealth.forEach((metric)=> { %>
-                      <article class="platform-health-item">
-                        <div class="platform-health-item__top">
-                          <p class="platform-health-item__title">
-                            <%= metric.title %>
-                          </p>
-                          <p class="platform-health-item__total">
-                            <%= metric.total %>
-                          </p>
-                        </div>
-                        <% metric.details.forEach((detail)=> { %>
-                          <div class="platform-health-item__detail">
-                            <span>
-                              <%= detail.label %>
-                            </span>
-                            <strong>
-                              <%= detail.value %>
-                            </strong>
-                          </div>
-                          <% }); %>
-                      </article>
-                      <% }); %>
-                  </div>
-                </section>
-          </main>
-      </div>
+      <section class="platform-health-card platform-health-card--minimal">
+        <div class="platform-health-card__header">
+          <div>
+            <h2>Platform health</h2>
+            <p class="timestamp">Updated <%= formatRelative(timestampSnapshot || Date.now()) %></p>
+          </div>
+        </div>
+        <div class="platform-health-grid">
+          <% platformHealth.forEach((metric)=> { %>
+            <article class="platform-health-item">
+              <div class="platform-health-item__top">
+                <p class="platform-health-item__title"><%= metric.title %></p>
+                <p class="platform-health-item__total"><%= metric.total %></p>
+              </div>
+              <% metric.details.forEach((detail)=> { %>
+                <div class="platform-health-item__detail">
+                  <span><%= detail.label %></span>
+                  <strong><%= detail.value %></strong>
+                </div>
+              <% }) %>
+            </article>
+          <% }) %>
+        </div>
+      </section>
+    </main>
+  </div>
 </body>
 
 </html>

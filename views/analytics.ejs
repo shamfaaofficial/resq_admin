@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Analytics Dashboard - RESQ Admin</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/analytics.css" />
+</head>
+
+<body class="dashboard-page">
+    <div class="dashboard-app">
+        <%- include("partials/sidebar", { active: "analytics" }) %>
+
+            <main class="dashboard-main analytics-main">
+                <header class="dashboard-hero">
+                    <div>
+                        <p class="eyebrow">Analytics</p>
+                        <h1>Minimal Dashboard</h1>
+                        <p class="breadcrumbs">
+                            <span>Home</span> <span class="divider">></span> Dashboards <span class="divider">></span>
+                            Minimal Dashboard Example
+                        </p>
+                    </div>
+                    <div class="header-actions">
+                        <select class="period-selector">
+                            <option>Select period...</option>
+                            <option>Today</option>
+                            <option>This Week</option>
+                            <option>This Month</option>
+                            <option>This Year</option>
+                        </select>
+                        <a href="/logout" class="button ghost">Log out</a>
+                    </div>
+                </header>
+
+                <!-- Info Alert -->
+                <div class="info-alert">
+                    <span class="info-icon">ℹ️</span>
+                    This dashboard example was created using only the available elements and components, no additional
+                    SCSS was written!
+                </div>
+
+                <!-- Top Stat Cards -->
+                <div class="top-stats-grid">
+                    <div class="stat-card-minimal">
+                        <div class="stat-icon-wrapper stat-icon-blue">
+                            <span class="trend-up">↗</span>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">NEW ACCOUNTS</p>
+                            <h2 class="stat-value">234 <span class="stat-unit">%</span></h2>
+                            <div class="mini-chart">
+                                <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                                    <polyline points="0,25 20,20 40,22 60,15 80,18 100,10" fill="none"
+                                        stroke="rgba(59, 130, 246, 0.5)" stroke-width="2" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-badge badge-blue">+49</div>
+                    </div>
+
+                    <div class="stat-card-minimal">
+                        <div class="stat-icon-wrapper stat-icon-red">
+                            <span class="trend-down">↘</span>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">TOTAL EXPENSES</p>
+                            <h2 class="stat-value">71 <span class="stat-unit">%</span></h2>
+                            <div class="mini-chart">
+                                <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                                    <polyline points="0,10 20,15 40,12 60,20 80,18 100,25" fill="none"
+                                        stroke="rgba(239, 68, 68, 0.5)" stroke-width="2" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-badge badge-red">-62</div>
+                    </div>
+
+                    <div class="stat-card-minimal">
+                        <div class="stat-icon-wrapper stat-icon-yellow">
+                            <span class="trend-neutral">→</span>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">COMPANY VALUE</p>
+                            <h2 class="stat-value">$ 1,445M</h2>
+                            <div class="mini-chart">
+                                <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                                    <polyline points="0,20 20,18 40,20 60,19 80,20 100,18" fill="none"
+                                        stroke="rgba(251, 191, 36, 0.5)" stroke-width="2" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-badge badge-yellow">+72</div>
+                    </div>
+
+                    <div class="stat-card-minimal">
+                        <div class="stat-icon-wrapper stat-icon-green">
+                            <span class="trend-up">↗</span>
+                        </div>
+                        <div class="stat-content">
+                            <p class="stat-label">NEW EMPLOYEES</p>
+                            <h2 class="stat-value">+ 34 <span class="stat-unit">hires</span></h2>
+                            <div class="mini-chart">
+                                <svg viewBox="0 0 100 30" preserveAspectRatio="none">
+                                    <polyline points="0,28 20,25 40,20 60,15 80,12 100,8" fill="none"
+                                        stroke="rgba(34, 197, 94, 0.5)" stroke-width="2" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-badge badge-green">+91</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <!-- Traffic Sources Chart -->
+                    <div class="chart-card large-chart">
+                        <div class="chart-header">
+                            <h3>Traffic Sources</h3>
+                            <button class="btn-actions">Actions</button>
+                        </div>
+                        <div class="chart-body">
+                            <div class="bar-chart">
+                                <div class="chart-bars">
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 45%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">Jan '00</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 60%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">02 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 50%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">03 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 75%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">04 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 40%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">05 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 55%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">06 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 48%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">07 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 65%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">08 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 90%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">09 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 70%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">10 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 52%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">11 Jan</span>
+                                    </div>
+                                    <div class="bar-group">
+                                        <div class="bar bar-blue" style="height: 42%;">
+                                            <span class="bar-dot"></span>
+                                        </div>
+                                        <span class="bar-label">12 Jan</span>
+                                    </div>
+                                </div>
+                                <div class="chart-overlay-line">
+                                    <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                                        <polyline
+                                            points="0,55 10,40 20,50 30,25 40,60 50,35 60,70 70,45 80,10 90,30 100,48"
+                                            fill="none" stroke="#10b981" stroke-width="2" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background: #3b82f6;"></span>
+                                    <span>Website Blog</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background: #10b981;"></span>
+                                    <span>Social Media</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Income Donut Chart -->
+                    <div class="chart-card small-chart">
+                        <div class="chart-header">
+                            <h3>Income</h3>
+                            <button class="btn-icon">⚙️</button>
+                        </div>
+                        <div class="chart-body">
+                            <div class="donut-chart">
+                                <svg viewBox="0 0 200 200">
+                                    <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e7eb" stroke-width="25" />
+                                    <circle cx="100" cy="100" r="80" fill="none" stroke="#3b82f6" stroke-width="25"
+                                        stroke-dasharray="377" stroke-dashoffset="94" transform="rotate(-90 100 100)" />
+                                    <circle cx="100" cy="100" r="80" fill="none" stroke="#10b981" stroke-width="25"
+                                        stroke-dasharray="377" stroke-dashoffset="283"
+                                        transform="rotate(-90 100 100)" />
+                                    <text x="100" y="95" text-anchor="middle" font-size="16"
+                                        fill="#6b7280">Percent</text>
+                                    <text x="100" y="120" text-anchor="middle" font-size="36" font-weight="bold"
+                                        fill="#111827">75</text>
+                                </svg>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-label">
+                                    <span>32%</span>
+                                    <span class="progress-sublabel">Spendings Target</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill" style="width: 32%; background: #fbbf24;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Metrics Row -->
+                <div class="metrics-row">
+                    <div class="metric-card">
+                        <p class="metric-label">Income</p>
+                        <h3 class="metric-value">$ 5,456</h3>
+                        <p class="metric-change positive">+14%</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-label">Expenses</p>
+                        <h3 class="metric-value">$ 4,764</h3>
+                        <p class="metric-change negative">- 8%</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-label">Spendings</p>
+                        <h3 class="metric-value">$ 1.5M</h3>
+                        <p class="metric-change positive">✓ 16%</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-label">Totals</p>
+                        <h3 class="metric-value">$ 31,564</h3>
+                        <p class="metric-change positive">+76%</p>
+                    </div>
+                </div>
+
+                <!-- Target Section -->
+                <div class="target-section">
+                    <div class="target-header">
+                        <h3>Target Section</h3>
+                        <a href="#" class="view-details">View Details</a>
+                    </div>
+                    <div class="target-bars">
+                        <div class="target-bar">
+                            <span class="target-percentage red">71%</span>
+                            <div class="target-progress">
+                                <div class="target-fill red" style="width: 71%;"></div>
+                            </div>
+                        </div>
+                        <div class="target-bar">
+                            <span class="target-percentage green">54%</span>
+                            <div class="target-progress">
+                                <div class="target-fill green" style="width: 54%;"></div>
+                            </div>
+                        </div>
+                        <div class="target-bar">
+                            <span class="target-percentage yellow">32%</span>
+                            <div class="target-progress">
+                                <div class="target-fill yellow" style="width: 32%;"></div>
+                            </div>
+                        </div>
+                        <div class="target-bar">
+                            <span class="target-percentage blue">89%</span>
+                            <div class="target-progress">
+                                <div class="target-fill blue" style="width: 89%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Action Button -->
+                <button class="fab">⚙️</button>
+            </main>
+    </div>
+</body>
+
+</html>

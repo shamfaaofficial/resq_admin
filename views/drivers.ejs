@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Drivers - Admin Panel</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/drivers.css" />
+</head>
+
+<body class="dashboard-page">
+    <div class="dashboard-app">
+        <%- include("partials/sidebar", { active: "drivers" }) %>
+
+            <main class="dashboard-main">
+                <header class="dashboard-hero">
+                    <div>
+                        <p class="eyebrow">Driver Management</p>
+                        <h1>All Drivers</h1>
+                    </div>
+                    <div class="header-actions">
+                        <span>Welcome, <%= user?.username || user?.phoneNumber || "Admin" %></span>
+                        <a href="/logout" class="button ghost">Log out</a>
+                    </div>
+                </header>
+
+                <% if (message) { %>
+                    <div class="alert alert-<%= type || 'info' %>"
+                        style="margin-bottom: 1.5rem; padding: 1rem; border-radius: 12px; background: <%= type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)' %>; color: <%= type === 'success' ? '#16a34a' : '#dc2626' %>;">
+                        <%= message %>
+                    </div>
+                    <% } %>
+
+                        <!-- Filter Bar -->
+                        <div class="filter-bar">
+                            <form method="GET" action="/drivers" class="filter-bar-top">
+                                <div class="search-box">
+                                    <input type="text" name="search" placeholder="Search by Driver Name / Phone / ID"
+                                        value="<%= search || '' %>" />
+                                </div>
+
+                                <div class="filter-group">
+                                    <select name="status" class="filter-select">
+                                        <option value="">All Status</option>
+                                        <option value="active" <%=status==='active' ? 'selected' : '' %>>Active</option>
+                                        <option value="pending" <%=status==='pending' ? 'selected' : '' %>>Pending
+                                        </option>
+                                        <option value="blocked" <%=status==='blocked' ? 'selected' : '' %>>Blocked
+                                        </option>
+                                        <option value="rejected" <%=status==='rejected' ? 'selected' : '' %>>Rejected
+                                        </option>
+                                    </select>
+
+                                    <select name="documentStatus" class="filter-select">
+                                        <option value="">All Documents</option>
+                                        <option value="pending" <%=documentStatus==='pending' ? 'selected' : '' %>
+                                            >Pending</option>
+                                        <option value="approved" <%=documentStatus==='approved' ? 'selected' : '' %>
+                                            >Approved</option>
+                                        <option value="rejected" <%=documentStatus==='rejected' ? 'selected' : '' %>
+                                            >Rejected</option>
+                                    </select>
+
+                                    <button type="submit" class="button" style="padding: 0.75rem 1.25rem;">Apply
+                                        Filters</button>
+                                    <a href="/drivers" class="button ghost" style="padding: 0.75rem 1.25rem;">Clear</a>
+                                </div>
+
+                                <button type="button" class="btn-add-driver"
+                                    onclick="alert('Add Driver feature coming soon!')">
+                                    <span>➕</span>
+                                    <span>Add Driver</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Driver Table -->
+                        <div class="driver-table-wrapper">
+                            <% if (drivers && drivers.length> 0) { %>
+                                <table class="driver-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;">
+                                                <input type="checkbox" id="selectAll" />
+                                            </th>
+                                            <th>Driver ID</th>
+                                            <th>Driver Name</th>
+                                            <th>Phone</th>
+                                            <th>Pending Docs</th>
+                                            <th>Approval Status</th>
+                                            <th>Last Updated</th>
+                                            <th style="text-align: center;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% drivers.forEach((driver)=> {
+                                            const driverId = driver._id || driver.id || 'N/A';
+                                            const driverName = driver.name || driver.fullName || 'Unknown';
+                                            const phone = driver.phoneNumber || driver.phone || 'N/A';
+                                            const pendingDocs = driver.pendingDocuments ||
+                                            driver.documentsCount?.pending || 0;
+                                            const approvalStatus = driver.approvalStatus || driver.status || 'pending';
+                                            const lastUpdated = driver.updatedAt || driver.lastUpdated ||
+                                            driver.createdAt;
+                                            const isBlocked = driver.isBlocked || driver.blocked || false;
+
+                                            let statusClass = 'status-badge-pending';
+                                            let statusText = 'Pending';
+
+                                            if (isBlocked) {
+                                            statusClass = 'status-badge-blocked';
+                                            statusText = 'Blocked';
+                                            } else if (approvalStatus === 'approved' || approvalStatus === 'active') {
+                                            statusClass = 'status-badge-approved';
+                                            statusText = 'Approved';
+                                            } else if (approvalStatus === 'rejected') {
+                                            statusClass = 'status-badge-rejected';
+                                            statusText = 'Rejected';
+                                            }
+
+                                            const formatDate = (date) => {
+                                            if (!date) return 'N/A';
+                                            const d = new Date(date);
+                                            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year:
+                                            'numeric' });
+                                            };
+                                            %>
+                                            <tr class="<%= pendingDocs > 0 ? 'pending-row' : '' %>">
+                                                <td>
+                                                    <input type="checkbox" name="driverSelect"
+                                                        value="<%= driverId %>" />
+                                                </td>
+                                                <td style="font-family: monospace; font-size: 0.85rem; color: #6b7280;">
+                                                    <%= driverId.substring(0, 8) %>...
+                                                </td>
+                                                <td style="font-weight: 500;">
+                                                    <%= driverName %>
+                                                </td>
+                                                <td>
+                                                    <%= phone %>
+                                                </td>
+                                                <td>
+                                                    <% if (pendingDocs> 0) { %>
+                                                        <span class="status-badge status-badge-pending">
+                                                            <%= pendingDocs %> Pending
+                                                        </span>
+                                                        <% } else { %>
+                                                            <span style="color: #6b7280; font-size: 0.85rem;">—</span>
+                                                            <% } %>
+                                                </td>
+                                                <td>
+                                                    <span class="status-badge <%= statusClass %>">
+                                                        <%= statusText %>
+                                                    </span>
+                                                </td>
+                                                <td style="color: #6b7280; font-size: 0.85rem;">
+                                                    <%= formatDate(lastUpdated) %>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons" style="justify-content: center;">
+                                                        <a href="/drivers/<%= driverId %>"
+                                                            class="action-btn action-btn-view" title="View Details">
+                                                            👁️
+                                                        </a>
+                                                        <button class="action-btn action-btn-edit" title="Edit Driver"
+                                                            onclick="alert('Edit feature coming soon!')">
+                                                            ✏️
+                                                        </button>
+                                                        <form method="POST" action="/drivers/<%= driverId %>/delete"
+                                                            style="display: inline;"
+                                                            onsubmit="return confirm('Are you sure you want to delete this driver?')">
+                                                            <button type="submit" class="action-btn action-btn-delete"
+                                                                title="Delete Driver">
+                                                                🗑️
+                                                            </button>
+                                                        </form>
+                                                        <form method="POST"
+                                                            action="/drivers/<%= driverId %>/<%= isBlocked ? 'unblock' : 'block' %>"
+                                                            style="display: inline;">
+                                                            <button type="submit" class="action-btn action-btn-block"
+                                                                title="<%= isBlocked ? 'Unblock' : 'Block' %> Driver">
+                                                                <%= isBlocked ? '🔓' : '🔒' %>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                    </tbody>
+                                </table>
+
+                                <!-- Pagination -->
+                                <% if (pagination && pagination.totalPages> 1) { %>
+                                    <div class="pagination">
+                                        <% if (pagination.currentPage> 1) { %>
+                                            <a href="?page=<%= pagination.currentPage - 1 %>&status=<%= status || '' %>&search=<%= search || '' %>&documentStatus=<%= documentStatus || '' %>"
+                                                class="pagination-btn">
+                                                ← Previous
+                                            </a>
+                                            <% } else { %>
+                                                <button class="pagination-btn" disabled>← Previous</button>
+                                                <% } %>
+
+                                                    <span class="pagination-info">
+                                                        Page <%= pagination.currentPage %> of <%= pagination.totalPages
+                                                                %>
+                                                                (<%= pagination.total || totalDrivers || 0 %> total)
+                                                    </span>
+
+                                                    <% if (pagination.currentPage < pagination.totalPages) { %>
+                                                        <a href="?page=<%= pagination.currentPage + 1 %>&status=<%= status || '' %>&search=<%= search || '' %>&documentStatus=<%= documentStatus || '' %>"
+                                                            class="pagination-btn">
+                                                            Next →
+                                                        </a>
+                                                        <% } else { %>
+                                                            <button class="pagination-btn" disabled>Next →</button>
+                                                            <% } %>
+                                    </div>
+                                    <% } %>
+                                        <% } else { %>
+                                            <!-- Empty State -->
+                                            <div class="empty-state">
+                                                <div class="empty-state-icon">🚗</div>
+                                                <h3>No drivers found</h3>
+                                                <p>
+                                                    <% if (search || status || documentStatus) { %>
+                                                        Try adjusting your filters or search query.
+                                                        <% } else { %>
+                                                            Start by adding your first driver to the system.
+                                                            <% } %>
+                                                </p>
+                                            </div>
+                                            <% } %>
+                        </div>
+            </main>
+    </div>
+
+    <script>
+        // Select all checkbox functionality
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const driverCheckboxes = document.querySelectorAll('input[name="driverSelect"]');
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function () {
+                driverCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
