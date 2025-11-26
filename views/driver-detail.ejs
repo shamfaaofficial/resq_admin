@@ -17,6 +17,8 @@
         <%- include("partials/sidebar", { active: "drivers" }) %>
 
             <main class="dashboard-main">
+                <%- include("partials/mobile-nav", { title: "Driver detail", user }) %>
+
                 <header class="dashboard-hero">
                     <div>
                         <p class="eyebrow">Driver Management</p>
@@ -297,6 +299,7 @@
         </div>
     </div>
 
+    <script src="/js/dashboard.js"></script>
     <script>
         function openDocumentModal(url, name) {
             const modal = document.getElementById('documentModal');

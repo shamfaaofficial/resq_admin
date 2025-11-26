@@ -15,6 +15,8 @@
         <%- include("partials/sidebar", { active: "analytics" }) %>
 
             <main class="dashboard-main analytics-main">
+                <%- include("partials/mobile-nav", { title: "Analytics", user }) %>
+
                 <header class="dashboard-hero">
                     <div>
                         <p class="eyebrow">Analytics</p>
@@ -315,6 +317,7 @@
                 <button class="fab">⚙️</button>
             </main>
     </div>
+    <script src="/js/dashboard.js"></script>
 </body>
 
 </html>

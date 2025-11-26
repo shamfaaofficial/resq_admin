@@ -14,6 +14,8 @@
         <%- include("partials/sidebar", { active: "trips" }) %>
 
             <main class="document-approvals-main document-approvals-page">
+                <%- include("partials/mobile-nav", { title: "Trips", user }) %>
+
                 <div class="document-approvals-shell">
                     <header class="document-page-header">
                         <div>
@@ -169,6 +171,7 @@
                 </div>
             </main>
     </div>
+    <script src="/js/dashboard.js"></script>
 </body>
 
 </html>

@@ -15,6 +15,8 @@
         <%- include("partials/sidebar", { active: "drivers" }) %>
 
             <main class="dashboard-main">
+                <%- include("partials/mobile-nav", { title: "Drivers", user }) %>
+
                 <header class="dashboard-hero">
                     <div>
                         <p class="eyebrow">Driver Management</p>
@@ -168,14 +170,32 @@
                                                             onclick="alert('Edit feature coming soon!')">
                                                             ✏️
                                                         </button>
-                                                        <form method="POST" action="/drivers/<%= driverId %>/delete"
-                                                            style="display: inline;"
-                                                            onsubmit="return confirm('Are you sure you want to delete this driver?')">
-                                                            <button type="submit" class="action-btn action-btn-delete"
-                                                                title="Delete Driver">
+                                                        <div style="position: relative; display: inline-block;">
+                                                            <button type="button" class="action-btn action-btn-delete"
+                                                                title="Delete Driver"
+                                                                onclick="toggleDeleteMenu('<%= driverId %>')">
                                                                 🗑️
                                                             </button>
-                                                        </form>
+                                                            <div id="delete-menu-<%= driverId %>"
+                                                                class="delete-dropdown" style="display: none;">
+                                                                <form
+                                                                    action="/drivers/<%= driverId %>/delete?hardDelete=false"
+                                                                    method="POST"
+                                                                    onsubmit="return confirm('Are you sure you want to delete this driver? This is a soft delete and can be recovered.');">
+                                                                    <button type="submit" class="delete-option">
+                                                                        🗑️ Delete (Soft)
+                                                                    </button>
+                                                                </form>
+                                                                <form
+                                                                    action="/drivers/<%= driverId %>/delete?hardDelete=true"
+                                                                    method="POST"
+                                                                    onsubmit="return confirm('⚠️ WARNING: This will PERMANENTLY delete this driver and ALL associated data. This action CANNOT be undone. Are you absolutely sure?');">
+                                                                    <button type="submit" class="delete-option danger">
+                                                                        ⚠️ Delete (Permanent)
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
                                                         <form method="POST"
                                                             action="/drivers/<%= driverId %>/<%= isBlocked ? 'unblock' : 'block' %>"
                                                             style="display: inline;">
@@ -237,6 +257,7 @@
             </main>
     </div>
 
+    <script src="/js/dashboard.js"></script>
     <script>
         // Select all checkbox functionality
         const selectAllCheckbox = document.getElementById('selectAll');
@@ -249,6 +270,46 @@
                 });
             });
         }
+
+        // Delete dropdown functionality
+        function toggleDeleteMenu(driverId) {
+            console.log('🔍 Toggle delete menu for driver:', driverId);
+            const menu = document.getElementById('delete-menu-' + driverId);
+
+            if (!menu) {
+                console.error('❌ Menu not found for driver:', driverId);
+                return;
+            }
+
+            const isVisible = menu.style.display === 'block';
+            console.log('Menu current state:', isVisible ? 'visible' : 'hidden');
+
+            // Close all other menus
+            document.querySelectorAll('.delete-dropdown').forEach(m => {
+                m.style.display = 'none';
+            });
+
+            // Toggle current menu
+            menu.style.display = isVisible ? 'none' : 'block';
+            console.log('Menu new state:', menu.style.display);
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.delete-dropdown') && !event.target.closest('.action-btn-delete')) {
+                console.log('🔍 Clicking outside, closing all menus');
+                document.querySelectorAll('.delete-dropdown').forEach(m => {
+                    m.style.display = 'none';
+                });
+            }
+        });
+
+        // Log when forms are submitted
+        document.addEventListener('submit', function (event) {
+            if (event.target.action && event.target.action.includes('/delete')) {
+                console.log('🗑️ Delete form submitting:', event.target.action);
+            }
+        });
     </script>
 </body>
 

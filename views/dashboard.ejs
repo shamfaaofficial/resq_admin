@@ -251,6 +251,44 @@
     <%- include("partials/sidebar", { active: "dashboard" }) %>
 
     <main class="dashboard-main dashboard-main--minimal" id="overview">
+      <%- include("partials/mobile-nav", { title: "Dashboard", user }) %>
+
+      <!-- <section class="dashboard-hero-banner">
+        <div class="dashboard-hero-glow"></div>
+        <div class="dashboard-hero-content">
+          <span class="dashboard-hero-pill">Live overview</span>
+          <h1>
+            Hi <%= user?.username || user?.phoneNumber || "Admin" %>,
+            keep the platform humming.
+          </h1>
+          <p>
+            <strong><%= formatNumber(activeTripsValue) %></strong> trips are currently active and
+            <strong><%= formatNumber(pendingCount) %></strong> drivers await document approvals.
+          </p>
+          <div class="dashboard-hero-actions">
+            <a href="/document-approvals" class="button hero-primary">Review documents</a>
+            <a href="/drivers" class="button hero-ghost">View driver list</a>
+          </div>
+        </div>
+        <div class="dashboard-hero-stats">
+          <article>
+            <p>Total Trips</p>
+            <strong><%= formatNumber(totalTripsValue) %></strong>
+            <small>+<%= formatNumber(activeTripsValue) %> live</small>
+          </article>
+          <article>
+            <p>Revenue Today</p>
+            <strong><%= formatCurrency(todayRevenueValue) %></strong>
+            <small><%= formatSignedPercent(companyValueChange) %> vs last week</small>
+          </article>
+          <article>
+            <p>Drivers Online</p>
+            <strong><%= formatNumber(onlineDriversValue) %></strong>
+            <small><%= formatNumber(newDriversRaw) %> new this month</small>
+          </article>
+        </div>
+      </section> -->
+
       <section class="page-header">
         <div>
           <p class="breadcrumbs">Dashboard</p>
@@ -270,7 +308,7 @@
 
       <section class="announcement-card">
         <p>This dashboard uses only built-in UI blocks. Feel free to mix and match the components to build your next board.</p>
-        <span class="timestamp">Data snapshot: <%= timestampSnapshot ? new Date(timestampSnapshot).toLocaleString() : "—" %></span>
+        <span class="timestamp">SYNC:<%= timestampSnapshot ? new Date(timestampSnapshot).toLocaleString() : "—" %></span>
       </section>
 
       <section class="minimal-stat-grid">
@@ -428,6 +466,7 @@
       </section>
     </main>
   </div>
+  <script src="/js/dashboard.js"></script>
 </body>
 
 </html>

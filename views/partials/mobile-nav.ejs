@@ -1,0 +1,17 @@
+<% const mobileSubtitle = typeof subtitle !== "undefined"
+  ? subtitle
+  : (user?.username || user?.phoneNumber || "ResQ Admin"); %>
+<% const mobileTitle = typeof title !== "undefined" ? title : "Menu"; %>
+
+<div class="mobile-top-bar">
+  <button class="sidebar-toggle" type="button" aria-label="Toggle navigation" data-sidebar-toggle>
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="mobile-top-bar__text">
+    <p><%= mobileSubtitle %></p>
+    <strong><%= mobileTitle %></strong>
+  </div>
+  <a href="/logout" class="mobile-top-bar__action">Log out</a>
+</div>

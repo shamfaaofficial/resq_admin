@@ -330,16 +330,37 @@ app.get("/drivers/:id", ensureAuth, async (req, res) => {
 
 app.post("/drivers/:id/delete", ensureAuth, async (req, res) => {
   const driverId = req.params.id;
+  const hardDelete = req.query.hardDelete || req.body.hardDelete || "false";
 
   try {
-    await axios.delete(`${BASE_API_URL}/api/v1/admin/drivers/${driverId}`, {
-      headers: buildHeaders(req),
-    });
+    const endpoint = `${BASE_API_URL}/api/v1/admin/drivers/${driverId}?hardDelete=${hardDelete}`;
+    console.log(`\n🗑️ ========== DELETE DRIVER REQUEST ==========`);
+    console.log(`Driver ID: ${driverId}`);
+    console.log(`Hard Delete: ${hardDelete}`);
+    console.log(`API URL: ${endpoint}`);
+    console.log(`Headers:`, buildHeaders(req));
 
-    return res.redirect("/drivers?message=Driver deleted successfully&type=success");
+    const response = await axios.delete(
+      endpoint,
+      { headers: buildHeaders(req) }
+    );
+
+    console.log(`✅ Delete successful:`, response.data);
+    console.log(`Status: ${response.status}`);
+    console.log(`==========================================\n`);
+
+    const deleteType = hardDelete === "true" ? "permanently deleted" : "deleted";
+    return res.redirect(`/drivers?message=Driver ${deleteType} successfully&type=success`);
   } catch (error) {
-    console.error("Driver deletion error:", error.message);
-    const message = error.response?.data?.message || "Failed to delete driver.";
+    console.error(`\n❌ ========== DELETE DRIVER ERROR ==========`);
+    console.error(`Driver ID: ${driverId}`);
+    console.error(`Error Message:`, error.message);
+    console.error(`Status Code:`, error.response?.status);
+    console.error(`Response Data:`, error.response?.data);
+    console.error(`Full Error:`, error.response || error);
+    console.error(`==========================================\n`);
+
+    const message = error.response?.data?.message || error.message || "Failed to delete driver.";
     return res.redirect(`/drivers?message=${encodeURIComponent(message)}&type=error`);
   }
 });
@@ -775,17 +796,37 @@ app.get("/users", ensureAuth, async (req, res) => {
 
 app.post("/users/:userId/delete", ensureAuth, async (req, res) => {
   const { userId } = req.params;
+  const hardDelete = req.query.hardDelete || req.body.hardDelete || "false";
 
   try {
-    await axios.delete(
-      `${BASE_API_URL}/api/v1/admin/users/${userId}`,
+    const endpoint = `${BASE_API_URL}/api/v1/admin/users/${userId}?hardDelete=${hardDelete}`;
+    console.log(`\n🗑️ ========== DELETE USER REQUEST ==========`);
+    console.log(`User ID: ${userId}`);
+    console.log(`Hard Delete: ${hardDelete}`);
+    console.log(`API URL: ${endpoint}`);
+    console.log(`Headers:`, buildHeaders(req));
+
+    const response = await axios.delete(
+      endpoint,
       { headers: buildHeaders(req) }
     );
 
-    return res.redirect("/users?message=User deleted successfully&type=success");
+    console.log(`✅ Delete successful:`, response.data);
+    console.log(`Status: ${response.status}`);
+    console.log(`==========================================\n`);
+
+    const deleteType = hardDelete === "true" ? "permanently deleted" : "deleted";
+    return res.redirect(`/users?message=User ${deleteType} successfully&type=success`);
   } catch (error) {
-    console.error("User deletion error:", error.message);
-    const message = error.response?.data?.message || "Failed to delete user.";
+    console.error(`\n❌ ========== DELETE USER ERROR ==========`);
+    console.error(`User ID: ${userId}`);
+    console.error(`Error Message:`, error.message);
+    console.error(`Status Code:`, error.response?.status);
+    console.error(`Response Data:`, error.response?.data);
+    console.error(`Full Error:`, error.response || error);
+    console.error(`==========================================\n`);
+
+    const message = error.response?.data?.message || error.message || "Failed to delete user.";
     return res.redirect(`/users?message=${encodeURIComponent(message)}&type=error`);
   }
 });
