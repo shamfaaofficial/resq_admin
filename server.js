@@ -12,6 +12,15 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
+
+// Disable LiteSpeed Cache and WordPress optimization
+app.use((req, res, next) => {
+  res.setHeader("X-LiteSpeed-Cache-Control", "no-cache");
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("X-Powered-By", "Express");
+  next();
+});
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || DEFAULT_SESSION_SECRET,
@@ -20,6 +29,11 @@ app.use(
     cookie: { maxAge: 1000 * 60 * 60 * 4 },
   })
 );
+
+// Favicon route to prevent 404 errors
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "images", "resq-logo.png"));
+});
 
 const ensureAuth = (req, res, next) => {
   if (req.session?.user && req.session?.tokens?.accessToken) {
