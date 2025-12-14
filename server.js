@@ -4,6 +4,7 @@ const axios = require("axios");
 const session = require("express-session");
 
 const app = express();
+
 const BASE_API_URL = process.env.BASE_API_URL || "https://dev.resq-qa.com";
 const DEFAULT_SESSION_SECRET = "resq-admin-secret";
 
@@ -801,12 +802,115 @@ app.get("/users", ensureAuth, async (req, res) => {
       pagination: { currentPage: 1, totalPages: 1, totalUsers: 0 },
       status,
       search,
-      message: null,
-      type: null,
-      errorMessage: "Failed to load users.",
+      message: "Failed to load users.",
+      type: "error",
+      errorMessage: message,
     });
   }
 });
+
+
+// Withdrawal Management Routes
+app.get("/withdrawals", ensureAuth, async (req, res) => {
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
+  const status = req.query.status || "";
+  const search = req.query.search || "";
+
+  let endpoint = `${BASE_API_URL}/api/v1/admin/withdrawals?page=${page}&limit=${limit}`;
+  if (status) endpoint += `&status=${status}`;
+  // if (search) endpoint += `&driverId=${search}`; // Assuming search might be driverId or handled by backend search
+
+  try {
+    const [withdrawalsRes, statsRes] = await Promise.allSettled([
+      axios.get(endpoint, { headers: buildHeaders(req) }),
+      axios.get(`${BASE_API_URL}/api/v1/admin/withdrawals/statistics`, { headers: buildHeaders(req) })
+    ]);
+
+    const withdrawalsData = withdrawalsRes.status === "fulfilled" ? withdrawalsRes.value.data?.data || {} : {};
+    const statsData = statsRes.status === "fulfilled" ? statsRes.value.data?.data?.summary || {} : {};
+
+    res.render("withdrawals", {
+      user: req.session.user,
+      withdrawals: withdrawalsData.withdrawals || [],
+      pagination: withdrawalsData.pagination || { page: 1, limit: 10, total: 0, pages: 1 },
+      stats: statsData,
+      status,
+      search,
+      message: req.query.message || null,
+      type: req.query.type || null,
+    });
+  } catch (error) {
+    console.error("Error fetching withdrawals:", error.message);
+    res.render("withdrawals", {
+      user: req.session.user,
+      withdrawals: [],
+      pagination: { page: 1, limit: 10, total: 0, pages: 1 },
+      stats: {},
+      status,
+      search,
+      message: "Failed to load withdrawals.",
+      type: "error",
+    });
+  }
+});
+
+app.post("/withdrawals/:id/approve", ensureAuth, async (req, res) => {
+  const withdrawalId = req.params.id;
+  try {
+    await axios.patch(
+      `${BASE_API_URL}/api/v1/admin/withdrawals/${withdrawalId}/approve`,
+      {},
+      { headers: buildHeaders(req) }
+    );
+    return res.redirect("/withdrawals?message=Withdrawal approved successfully&type=success");
+  } catch (error) {
+    console.error("Withdrawal approval error:", error.message);
+    const message = error.response?.data?.message || "Failed to approve withdrawal.";
+    return res.redirect(`/withdrawals?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+app.post("/withdrawals/:id/complete", ensureAuth, async (req, res) => {
+  const withdrawalId = req.params.id;
+  const notes = req.body.notes || "";
+  try {
+    await axios.patch(
+      `${BASE_API_URL}/api/v1/admin/withdrawals/${withdrawalId}/complete`,
+      { notes },
+      { headers: buildHeaders(req) }
+    );
+    return res.redirect("/withdrawals?message=Withdrawal marked as completed&type=success");
+  } catch (error) {
+    console.error("Withdrawal completion error:", error.message);
+    const message = error.response?.data?.message || "Failed to complete withdrawal.";
+    return res.redirect(`/withdrawals?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+app.post("/withdrawals/:id/reject", ensureAuth, async (req, res) => {
+  const withdrawalId = req.params.id;
+  const rejectionReason = req.body.rejectionReason;
+
+  if (!rejectionReason) {
+    return res.redirect(`/withdrawals?message=Rejection reason is required&type=error`);
+  }
+
+  try {
+    await axios.patch(
+      `${BASE_API_URL}/api/v1/admin/withdrawals/${withdrawalId}/reject`,
+      { rejectionReason },
+      { headers: buildHeaders(req) }
+    );
+    return res.redirect("/withdrawals?message=Withdrawal rejected successfully&type=success");
+  } catch (error) {
+    console.error("Withdrawal rejection error:", error.message);
+    const message = error.response?.data?.message || "Failed to reject withdrawal.";
+    return res.redirect(`/withdrawals?message=${encodeURIComponent(message)}&type=error`);
+  }
+});
+
+
 
 app.post("/users/:userId/delete", ensureAuth, async (req, res) => {
   const { userId } = req.params;
@@ -853,3 +957,6 @@ app.get("/logout", (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server running on http://localhost:${port}`));
+
+// Force keep-alive for debugging
+setInterval(() => { }, 1000);
