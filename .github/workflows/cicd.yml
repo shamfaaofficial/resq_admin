@@ -1,0 +1,52 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove unnecessary files
+        run: |
+          rm -rf node_modules .git
+
+      - name: Rsync files
+        uses: burnett01/rsync-deployments@7.0.2
+        with:
+          switches: -az --delete
+          path: "./"
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USERNAME }}
+          remote_path: "/home/ubuntu/docker/admin/app/code"
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}          
+          timeout: 30s
+          script: |
+            set -euo pipefail
+            cd /home/ubuntu/docker/admin/app/
+
+            echo 'Starting containers'
+            docker compose up -d --build
+
+            echo 'Restarting proxy_server'
+            docker restart proxy_server || echo "proxy_server container not found or failed to restart"
+
+            echo 'Deployment finished.'
+            echo 'You website is live at https://dev.resq-qa.com/health'
