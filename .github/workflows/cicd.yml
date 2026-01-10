@@ -49,4 +49,4 @@ jobs:
             docker restart proxy_server || echo "proxy_server container not found or failed to restart"
 
             echo 'Deployment finished.'
-            echo 'You website is live at https://dev.resq-qa.com/health'
+            echo 'You website is live at https://adminpanel.resq-qa.com/'
