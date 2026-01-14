@@ -8,46 +8,27 @@ on:
 jobs:
   deploy:
     name: Deploy to dev
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Remove unnecessary files
+      - name: Clean workspace
         run: |
-          rm -rf node_modules .git
+          rm -rf node_modules
 
-      - name: Rsync files
-        uses: burnett01/rsync-deployments@7.0.2
-        with:
-          switches: -az --delete
-          path: "./"
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USERNAME }}
-          remote_path: "/home/ubuntu/docker/admin/app/code"
-          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          rsh: ssh
+      - name: Deploy with Docker Compose
+        run: |
+          set -euo pipefail
 
+          cd /home/ubuntu/docker/admin/app
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}          
-          timeout: 30s
-          script: |
-            set -euo pipefail
-            cd /home/ubuntu/docker/admin/app/
+          echo "Building and starting containers"
+          docker compose up -d --build
 
-            echo 'Starting containers'
-            docker compose up -d --build
+          echo "Restarting proxy_server"
+          docker restart proxy_server || echo "proxy_server not running"
 
-            echo 'Restarting proxy_server'
-            docker restart proxy_server || echo "proxy_server container not found or failed to restart"
-
-            echo 'Deployment finished.'
-            echo 'You website is live at https://adminpanel.resq-qa.com/'
+          echo "Deployment finished"
+          echo "Website live at https://adminpanel.resq-qa.com/"
