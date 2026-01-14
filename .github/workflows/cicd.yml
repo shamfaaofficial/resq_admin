@@ -28,7 +28,6 @@ jobs:
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_path: "/home/ubuntu/docker/admin/app/code"
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          rsh: ssh -T
 
 
       - name: Deploy via SSH
