@@ -470,6 +470,13 @@ app.get("/analytics", ensureAuth, (req, res) => {
   });
 });
 
+app.get("/privacy-policy", (req, res) => {
+  res.render("privacy-policy", {
+    user: req.session.user,
+    feedback: null,
+  });
+});
+
 app.get("/dashboard", ensureAuth, async (req, res) => {
   try {
     const [statsRes, pendingRes, driversRes, bookingsRes] = await Promise.allSettled([
