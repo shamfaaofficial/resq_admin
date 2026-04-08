@@ -17,6 +17,12 @@ jobs:
       - name: Clean workspace
         run: |
           rm -rf node_modules
+          
+      - name: Sync code to deployment directory
+        run: |
+          rsync -av --delete \
+            $GITHUB_WORKSPACE/ \
+            /home/ubuntu/docker/admin/app/code/
 
       - name: Deploy with Docker Compose
         run: |
