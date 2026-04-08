@@ -20,7 +20,7 @@ jobs:
           
       - name: Sync code to deployment directory
         run: |
-          rsync -av --delete \
+          sudo rsync -av --delete \
             $GITHUB_WORKSPACE/ \
             /home/ubuntu/docker/admin/app/code/
 
