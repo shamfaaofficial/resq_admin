@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - ResQ Admin</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 30px; color: #1e293b; }
+        h2 { margin-top: 30px; color: #334155; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        h3 { margin-top: 20px; color: #475569; }
+        p, li { margin-bottom: 15px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #4f46e5; text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+        .back-link:hover { text-decoration: underline; }
+        
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+        .support-card {
+            background: #f1f5f9;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .support-card h3 { margin-top: 0; color: #0f172a; }
+        .support-card p { font-size: 0.95rem; color: #64748b; margin-bottom: 20px; }
+        .contact-btn {
+            display: inline-block;
+            background: #4f46e5;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .contact-btn:hover { background: #4338ca; }
+        .email-direct {
+            margin: 0;
+            font-family: ui-monospace, monospace;
+            font-size: 1.05rem;
+            color: #0f172a;
+            word-break: break-all;
+        }
+        
+        .faq-section { margin-top: 40px; }
+        .faq-item { margin-bottom: 24px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; }
+        .faq-question { font-weight: 600; color: #1e293b; margin-bottom: 8px; }
+        .faq-answer { color: #475569; font-size: 0.95rem; }
+        
+        .footer-note { font-style: italic; color: #94a3b8; margin-top: 40px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px; font-size: 0.9rem; }
+        .copyright { text-align: center; color: #94a3b8; font-size: 0.85rem; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <% const supportEmail = "resq.qa@gmail.com"; %>
+    <div class="container">
+        <% if (!user) { %>
+            <a href="/login" class="back-link">&larr; Back to Login</a>
+        <% } else { %>
+            <a href="/dashboard" class="back-link">&larr; Back to Dashboard</a>
+        <% } %>
+
+        <h1>Technical Support</h1>
+        <p>Welcome to the ResQ Admin Console Support Center. If you are experiencing issues with the administration panel or have questions about system operations, please refer to the resources below.</p>
+
+        <div class="support-grid">
+            <div class="support-card">
+                <h3>Email Support</h3>
+                <p>For technical inquiries, bug reports, or feature requests, send us an email and we'll get back to you within 24 hours.</p>
+                <p class="email-direct"><%= supportEmail %></p>
+            </div>
+            <div class="support-card">
+                <h3>Urgent Assistance</h3>
+                <p>For critical system failures or urgent account issues, please contact our emergency hotline.</p>
+                <a href="tel:+97471100016" class="contact-btn">Call Support</a>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <p class="faq-question">How do I approve a new driver?</p>
+                <p class="faq-answer">Navigate to the "Documents" section in the sidebar. You can review pending document submissions for each driver. Once all documents are verified, you can approve the driver from their detail page.</p>
+            </div>
+            
+            <div class="faq-item">
+                <p class="faq-question">Why can't I see live trips?</p>
+                <p class="faq-answer">Live trips are visible in the "Trips" section. If no trips are showing, ensure that there are active bookings in the system. If you believe this is a technical error, try refreshing the dashboard.</p>
+            </div>
+            
+            <div class="faq-item">
+                <p class="faq-question">How do I manage payouts?</p>
+                <p class="faq-answer">The "Withdrawals" section allows you to track and manage driver payout requests. Payouts are typically processed automatically on Sundays as per our policy.</p>
+            </div>
+            
+            <div class="faq-item">
+                <p class="faq-question">Can I update the Privacy Policy or terms?</p>
+                <p class="faq-answer">Currently, these documents are managed by the technical team. Please contact email support if updates are required to legal documents on the platform.</p>
+            </div>
+        </div>
+
+        <p class="footer-note">Providing efficient tools for the ResQ operations team.</p>
+        <p class="copyright">&copy; 2026 RESQ Qatar. All rights reserved.</p>
+    </div>
+</body>
+</html>

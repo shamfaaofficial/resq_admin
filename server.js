@@ -477,6 +477,14 @@ app.get("/privacy-policy", (req, res) => {
   });
 });
 
+app.get("/support", (req, res) => {
+  res.render("support", {
+    user: req.session?.user || null,
+  });
+});
+
+
+
 app.get("/dashboard", ensureAuth, async (req, res) => {
   try {
     const [statsRes, pendingRes, driversRes, bookingsRes] = await Promise.allSettled([
